@@ -53,15 +53,15 @@ class _HOMEPAGEState extends State<HOMEPAGE> {
               _showLoadingDialog(context);
               try {
                 List<WeatherModel> liveForecastList = await _fetchLiveWeatherData();
-                if (mounted) Navigator.of(context).pop();
-                if (mounted) _showCircularWeatherPopup(context, liveForecastList);
+                if (mounted) return;
+                 Navigator.of(context).pop();
+                _showCircularWeatherPopup(context, liveForecastList);
               } catch (e) {
-                if (mounted) Navigator.of(context).pop();
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Veri çekilemedi: $e')),
-                  );
-                }
+                if (mounted) return;
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Veri çekilemedi: $e')),
+                );
               }
             },
             icon: const Icon(

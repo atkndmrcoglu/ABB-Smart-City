@@ -1,10 +1,116 @@
 import 'package:flutter/material.dart';
+import 'package:smartcity/pages/bottom_menu_pages/aski_birimler.dart';
+import 'package:smartcity/pages/bottom_menu_pages/hizmet_talepleri.dart';
+import 'package:smartcity/pages/bottom_menu_pages/ihbar_sikayet.dart';
+import 'package:smartcity/pages/bottom_menu_pages/kentkart_islemleri.dart';
+import 'package:smartcity/pages/bottom_menu_pages/turistik_adana.dart';
+import 'package:smartcity/pages/bottom_menu_pages/wifi_noktalari.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class BottomMenu extends StatelessWidget {
   const BottomMenu({super.key});
 
+  void _onItemTap(BuildContext context, Map<String, dynamic> item) async {
+    if (item['page'] != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => item['page'] as Widget),
+      );
+    } 
+    else if (item['url'] != null) {
+      final Uri url = Uri.parse(item['url'] as String);
+      final bool isExternal = item['isExternal'] == true;
+
+      if (!await launchUrl(
+        url, 
+        mode: isExternal ? LaunchMode.externalApplication : LaunchMode.inAppWebView,
+        webViewConfiguration: const WebViewConfiguration(enableJavaScript: true),
+      )) {
+        debugPrint('Could not launch: ${item['url']}');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final List<Map<String, dynamic>> items = [
+      {
+        'title': 'OTOBÜSLER',
+        'logo': 'assets/genc_adana_logo.png',
+        'url': 'https://www.adana.bel.tr/tr/duyuru',
+      },
+      {
+        'title': 'KENTKART İŞLEMLERİ',
+        'logo': 'assets/aski_logo.png',
+        'page': const KentkartIslemleri(),
+      },
+      {
+        'title': 'ECZANELER',
+        'logo': 'assets/pkds_logo.png',
+        'url': 'https://www.adana.bel.tr',
+      },
+      {
+        'title': 'WİFİ NOKTALARI',
+        'logo': 'assets/genc_adana_logo.png',
+        'page': const WifiNoktalari(),
+      },
+      {
+        'title': 'ŞEHİR REHBERİM',
+        'logo': 'assets/genc_adana_logo.png',
+        'url': 'https://www.adana.bel.tr',
+      },
+      {
+        'title': 'TRAFİK YOĞUNLUĞU',
+        'logo': 'assets/genc_adana_logo.png',
+        'url': 'https://www.adana.bel.tr',
+      },
+      {
+        'title': 'KÜTÜPHANELER',
+        'logo': 'assets/genc_adana_logo.png',
+        'url': 'https://www.adana.bel.tr',
+      },
+      {
+        'title': 'ADANA 360',
+        'logo': 'assets/genc_adana_logo.png',
+        'page': const Adana(),
+      },
+      {
+        'title': 'İHBAR ŞİKAYET',
+        'logo': 'assets/genc_adana_logo.png',
+        'page': const IhbarSikayet(),
+      },
+      {
+        'title': 'HİZMET TALEPLERİ',
+        'logo': 'assets/genc_adana_logo.png',
+        'page': const HizmetTalepleri()
+      },
+      {
+        'title': 'ASKİ',
+        'logo': 'assets/aski_logo.png',
+        'page': const AskiBirimler(),
+      },
+      {
+        'title': 'HAL',
+        'logo': 'assets/genc_adana_logo.png',
+        'url': 'https://www.adana.bel.tr/tr/hal-fiyat-listesi',
+      },
+      {
+        'title': 'AFET BİLGİ',
+        'logo': 'assets/bottom_drawer_images/afet_bilgi.png',
+        'url': 'https://www.adana.bel.tr/tr/afet',
+      },
+      {
+        'title': 'İHALE İLANLARI',
+        'logo': 'assets/genc_adana_logo.png',
+        'url': 'https://www.adana.bel.tr/tr/ihale',
+      },
+      {
+        'title': 'ŞEFKAT KÖPRÜSÜ',
+        'logo': 'assets/bottom_drawer_images/sefkat_koprusu.png',
+        'url': 'https://sefkatkoprusu.com/#/',
+      },
+    ];
+
     return DraggableScrollableSheet(
       initialChildSize: 0.22, 
       minChildSize: 0.22,    
@@ -25,11 +131,8 @@ class BottomMenu extends StatelessWidget {
           ),
           child: Column(
             children: [
-              // 1. Sliding Chevron Indicator
               const SizedBox(height: 12),
               Icon(Icons.keyboard_arrow_up_rounded, color: Colors.grey[400], size: 28),
-              
-              // 2. Title Section
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 4.0),
                 child: Text(
@@ -37,58 +140,58 @@ class BottomMenu extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w400,
-                    color: Color(0xFF00B48B), // Custom green matching the style
+                    color: Color(0xFF00B48B),
                   ),
                 ),
               ),
-
-              // 3. Category Tabs Layout Tracker
               
               const Divider(height: 1, thickness: 1),
 
-              // 4. Scrollable Dynamic Grid Matrix
               Expanded(
                 child: GridView.builder(
-                  controller: scrollController, // Vital connection for drag controls
+                  controller: scrollController, 
                   padding: const EdgeInsets.all(16.0),
-                  itemCount: 6,
+                  itemCount: items.length,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
-                    childAspectRatio: 0.95, // Adjust vertical box size squeeze
+                    childAspectRatio: 0.95, 
                   ),
                   itemBuilder: (context, index) {
-                    final items = [
-                      {'title': 'OTOBÜSLER', 'icon': Icons.bus_alert, 'color': Colors.red},
-                      {'title': 'ECZANELER', 'icon': Icons.local_pharmacy, 'color': Colors.blue},
-                      {'title': 'KENTKART DOLUM NOKTALARI', 'icon': Icons.card_membership, 'color': Colors.cyan},
-                      {'title': 'KENTKART İŞLEMLERİ', 'icon': Icons.cast_rounded, 'color': Colors.purple},
-                      {'title': 'COV HAVALİMANI SERVİSLER', 'icon': Icons.airplane_ticket, 'color': Colors.orange},
-                      {'title': 'MEZARLIK', 'icon': Icons.arrow_forward, 'color': Colors.green},
-                    ];
+                    final item = items[index];
 
-                    return Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.grey.shade100),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(items[index]['icon'] as IconData, size: 55, color: items[index]['color'] as Color),
-                          const SizedBox(height: 12),
-                          Text(
-                            items[index]['title'] as String,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF1E293B),
+                    return InkWell(
+                      onTap: () => _onItemTap(context, item),
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.grey.shade100),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset(
+                              item['logo'] as String,
+                              height: 45,
+                              width: 45,
+                              errorBuilder: (context, error, stackTrace) => 
+                                  const Icon(Icons.apps, size: 45, color: Colors.grey),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 12),
+                            Text(
+                              item['title'] as String,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF1E293B),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -102,10 +205,10 @@ class BottomMenu extends StatelessWidget {
   }
 }
 
-class _CategoryTab extends StatelessWidget {
+class CategoryTab extends StatelessWidget {
   final String title;
   final bool isActive;
-  const _CategoryTab({required this.title, required this.isActive});
+  const CategoryTab({super.key, required this.title, required this.isActive});
 
   @override
   Widget build(BuildContext context) {
