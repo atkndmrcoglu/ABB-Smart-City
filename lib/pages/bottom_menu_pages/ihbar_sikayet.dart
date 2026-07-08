@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:smartcity/pages/ihbar_sikayet_pages/istek_sikayet.dart';
+import 'package:smartcity/pages/ihbar_sikayet_pages/atik_bildir.dart';
+import 'package:smartcity/pages/ihbar_sikayet_pages/atik_bildir.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class IhbarSikayet extends StatefulWidget {
@@ -12,29 +15,65 @@ class _IhbarSikayetState extends State<IhbarSikayet> {
   final List<Map<String, dynamic>> items = [
     {
       'title': 'ALO 153',
-      'logo': 'assets/genc_adana_logo.png',
+      'logo': 'assets/ihbar_sikayet_images/alo153.png',
+      'url': 'tel:153',
+      'isExternal': true,
     },
     {
       'title': 'ÇEK GÖNDER',
-      'logo': 'assets/aski_logo.png',
+      'logo': 'assets/ihbar_sikayet_images/cek_gonder.png',
+      'url': 'https://wa.me/905354540101',
+      'isExternal': true,
     },
     {
       'title': 'İSTEK & ŞİKAYET',
-      'logo': 'assets/pkds_logo.png',
+      'logo': 'assets/ihbar_sikayet_images/istek_sikayet.png',
+      'page': () => const IstekSikayet(),
     },
     {
       'title': 'ATIK BİLDİR',
-      'logo': 'assets/pkds_logo.png',
+      'logo': 'assets/ihbar_sikayet_images/atik_bildir.png',
+      'page': () => const AtikBildir(),
     },
     {
       'title': 'ALO 185 ASKİ İHBAR',
-      'logo': 'assets/pkds_logo.png',
+      'logo': 'assets/aski_images/alo_185.png',
+      'url': 'tel:185',
+      'isExternal': true,
     },
     {
-      'title': 'ASKİ WP İHBAR',
-      'logo': 'assets/pkds_logo.png',
+      'title': 'ASKİ WHATSAPP İHBAR HATTI',
+      'logo': 'assets/whatsapp.png',
+      'url': 'https://wa.me/905331505985',
+      'isExternal': true,
     },
   ];
+  void _onItemTap(Map<String, dynamic> item) async {
+    if (item['page'] != null) {
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => (item['page'] as Widget Function())(),
+          ),
+        );
+      }
+    } 
+    else if (item['url'] != null) {
+      final Uri url = Uri.parse(item['url'] as String);
+      final bool isExternal = item['isExternal'] == true;
+
+      if (await canLaunchUrl(url)) {
+        await launchUrl(
+          url, 
+          mode: isExternal ? LaunchMode.externalApplication : LaunchMode.inAppWebView,
+          webViewConfiguration: const WebViewConfiguration(enableJavaScript: true),
+        );
+      } else {
+        debugPrint('Could not launch: ${item['url']}');
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,10 +103,12 @@ class _IhbarSikayetState extends State<IhbarSikayet> {
             childAspectRatio: 0.95,
           ),
           itemBuilder: (context, index) {
-            final String title = (items[index]['title'] ?? 'Uygulama').toString();
-            final String logo = (items[index]['logo'] ?? '').toString();
+            final item = items[index];
+            final String title = (item['title'] ?? 'Uygulama').toString();
+            final String logo = (item['logo'] ?? '').toString();
 
             return InkWell(
+              onTap: () => _onItemTap(item),
               borderRadius: BorderRadius.circular(16),
               child: Container(
                 decoration: BoxDecoration(
@@ -87,8 +128,8 @@ class _IhbarSikayetState extends State<IhbarSikayet> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     SizedBox(
-                      width: 65,
-                      height: 65,
+                      width: 90,
+                      height: 90,
                       child: Image.asset(
                         logo,
                         fit: BoxFit.contain,

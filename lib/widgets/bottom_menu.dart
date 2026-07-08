@@ -3,6 +3,7 @@ import 'package:smartcity/pages/bottom_menu_pages/aski_birimler.dart';
 import 'package:smartcity/pages/bottom_menu_pages/hizmet_talepleri.dart';
 import 'package:smartcity/pages/bottom_menu_pages/ihbar_sikayet.dart';
 import 'package:smartcity/pages/bottom_menu_pages/kentkart_islemleri.dart';
+import 'package:smartcity/pages/bottom_menu_pages/sehir_rehberim.dart';
 import 'package:smartcity/pages/bottom_menu_pages/turistik_adana.dart';
 import 'package:smartcity/pages/bottom_menu_pages/wifi_noktalari.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -36,52 +37,52 @@ class BottomMenu extends StatelessWidget {
     final List<Map<String, dynamic>> items = [
       {
         'title': 'OTOBÜSLER',
-        'logo': 'assets/genc_adana_logo.png',
+        'logo': 'assets/bottom_drawer_images/otobus.png',
         'url': 'https://www.adana.bel.tr/tr/duyuru',
       },
       {
         'title': 'KENTKART İŞLEMLERİ',
-        'logo': 'assets/aski_logo.png',
+        'logo': 'assets/bottom_drawer_images/kentkart_islemleri.png',
         'page': const KentkartIslemleri(),
       },
       {
         'title': 'ECZANELER',
-        'logo': 'assets/pkds_logo.png',
+        'logo': 'assets/bottom_drawer_images/eczane.png',
         'url': 'https://www.adana.bel.tr',
       },
       {
         'title': 'WİFİ NOKTALARI',
-        'logo': 'assets/genc_adana_logo.png',
+        'logo': 'assets/bottom_drawer_images/wifi.png',
         'page': const WifiNoktalari(),
       },
       {
         'title': 'ŞEHİR REHBERİM',
-        'logo': 'assets/genc_adana_logo.png',
-        'url': 'https://www.adana.bel.tr',
+        'logo': 'assets/bottom_drawer_images/sehir_rehberim.png',
+        'page': const SehirRehberim(),
       },
       {
         'title': 'TRAFİK YOĞUNLUĞU',
-        'logo': 'assets/genc_adana_logo.png',
+        'logo': 'assets/bottom_drawer_images/trafik_yogunlugu.png',
         'url': 'https://www.adana.bel.tr',
       },
       {
         'title': 'KÜTÜPHANELER',
-        'logo': 'assets/genc_adana_logo.png',
-        'url': 'https://www.adana.bel.tr',
+        'logo': 'assets/bottom_drawer_images/kutuphane.png',
+        'url': 'https://kutuphane.adana.bel.tr/#',
       },
       {
         'title': 'ADANA 360',
-        'logo': 'assets/genc_adana_logo.png',
+        'logo': 'assets/bottom_drawer_images/adana360.png',
         'page': const Adana(),
       },
       {
         'title': 'İHBAR ŞİKAYET',
-        'logo': 'assets/genc_adana_logo.png',
+        'logo': 'assets/bottom_drawer_images/ihbar_sikayet.png',
         'page': const IhbarSikayet(),
       },
       {
         'title': 'HİZMET TALEPLERİ',
-        'logo': 'assets/genc_adana_logo.png',
+        'logo': 'assets/bottom_drawer_images/hizmet_talepleri.png',
         'page': const HizmetTalepleri()
       },
       {
@@ -90,8 +91,8 @@ class BottomMenu extends StatelessWidget {
         'page': const AskiBirimler(),
       },
       {
-        'title': 'HAL',
-        'logo': 'assets/genc_adana_logo.png',
+        'title': 'HAL GÜNLÜK RAİÇ BEDELLERİ',
+        'logo': 'assets/bottom_drawer_images/hal.png',
         'url': 'https://www.adana.bel.tr/tr/hal-fiyat-listesi',
       },
       {
@@ -101,7 +102,7 @@ class BottomMenu extends StatelessWidget {
       },
       {
         'title': 'İHALE İLANLARI',
-        'logo': 'assets/genc_adana_logo.png',
+        'logo': 'assets/bottom_drawer_images/ihale_ilanlari.png',
         'url': 'https://www.adana.bel.tr/tr/ihale',
       },
       {
@@ -175,8 +176,8 @@ class BottomMenu extends StatelessWidget {
                           children: [
                             Image.asset(
                               item['logo'] as String,
-                              height: 45,
-                              width: 45,
+                              height: 90,
+                              width: 90,
                               errorBuilder: (context, error, stackTrace) => 
                                   const Icon(Icons.apps, size: 45, color: Colors.grey),
                             ),

@@ -125,8 +125,8 @@ class _AskiBirimlerState extends State<AskiBirimler> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     SizedBox(
-                      width: 65,
-                      height: 65,
+                      width: 90,
+                      height: 90,
                       child: Image.asset(
                         logo,
                         fit: BoxFit.contain,

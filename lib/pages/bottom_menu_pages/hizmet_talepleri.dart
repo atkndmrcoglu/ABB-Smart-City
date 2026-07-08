@@ -12,33 +12,64 @@ class _HizmetTalepleriState extends State<HizmetTalepleri> {
   final List<Map<String, dynamic>> items = [
     {
       'title': 'İŞ YERİ RUHSAT İŞLEMLERİ',
-      'logo': 'assets/genc_adana_logo.png',
+      'logo': 'assets/hizmet_talepleri_images/is_yeri_ruhsat_islemleri.png',
+      'url': 'https://www.adana.bel.tr/tr/hizmetlerimiz/is-yeri-ruhsat-islemleri',
     },
     {
       'title': 'DENİZCİLİK İÇ SU HİZMETLERİ',
-      'logo': 'assets/aski_logo.png',
+      'logo': 'assets/hizmet_talepleri_images/denizcilik_ic_su_hizmetleri.png',
+      'url': 'https://www.adana.bel.tr/tr/hizmetlerimiz/denizcilik-ve-ic-su-hizmetleri',
     },
     {
       'title': 'İŞ TALEPLERİ',
-      'logo': 'assets/pkds_logo.png',
+      'logo': 'assets/hizmet_talepleri_images/is_talepleri.png',
+      'url': 'https://www.adana.bel.tr/tr/hizmetlerimiz/is-talepleri'
     },
     {
       'title': 'ALTYAPI HİZMETLERİ',
-      'logo': 'assets/pkds_logo.png',
+      'logo': 'assets/hizmet_talepleri_images/altyapi_hizmetleri.png',
+      'url': 'https://www.adana.bel.tr/tr/hizmetlerimiz/altyapi-ve-koordinasyon-hizmetleri'
     },
     {
       'title': 'TEKERLEKLİ SANDALYE BAŞVURU',
-      'logo': 'assets/pkds_logo.png',
+      'logo': 'assets/hizmet_talepleri_images/tekerlekli_sandalye_basvuru.png',
+      'url': 'https://www.adana.bel.tr/tr/hizmetlerimiz/tekerlekli-sandalye-basvurusu'
     },
     {
       'title': 'MEZARLIK DEFİN',
-      'logo': 'assets/pkds_logo.png',
+      'logo': 'assets/hizmet_talepleri_images/mezarlik_defin.png',
+      'url': 'https://www.adana.bel.tr/tr/hizmetlerimiz/mezarlik-defin-islemleri'
     },
     {
       'title': 'TİCARİ ARAÇ İŞLEMLERİ',
-      'logo': 'assets/pkds_logo.png',
+      'logo': 'assets/hizmet_talepleri_images/ticari_arac_islemleri.png',
+      'url': 'https://www.adana.bel.tr/tr/hizmetlerimiz/ticari-arac-islemleri'
     },
   ];
+
+  void _onItemTap(BuildContext context, Map<String, dynamic> item) async {
+    if (item['page'] != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => item['page'] as Widget),
+      );
+    } 
+    else if (item['url'] != null) {
+      final Uri url = Uri.parse(item['url'] as String);
+      final bool isExternal = item['isExternal'] == true;
+      if (!await launchUrl(
+        url, 
+        mode: isExternal ? LaunchMode.externalApplication : LaunchMode.inAppWebView,
+        webViewConfiguration: const WebViewConfiguration(enableJavaScript: true),
+      )) {
+        debugPrint('Could not launch: ${item['url']}');
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bu hizmet için henüz bir yönlendirme eklenmedi.')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,10 +99,14 @@ class _HizmetTalepleriState extends State<HizmetTalepleri> {
             childAspectRatio: 0.95,
           ),
           itemBuilder: (context, index) {
-            final String title = (items[index]['title'] ?? 'Uygulama').toString();
-            final String logo = (items[index]['logo'] ?? '').toString();
+            // 2. DÜZELTME: listenin o anki elemanını bir değişkene atadık
+            final Map<String, dynamic> currentItem = items[index];
+            final String title = (currentItem['title'] ?? 'Uygulama').toString();
+            final String logo = (currentItem['logo'] ?? '').toString();
 
             return InkWell(
+              // 3. DÜZELTME: Tanımladığımız currentItem'ı fonksiyona gönderdik
+              onTap: () => _onItemTap(context, currentItem),
               borderRadius: BorderRadius.circular(16),
               child: Container(
                 decoration: BoxDecoration(
@@ -87,35 +122,38 @@ class _HizmetTalepleriState extends State<HizmetTalepleri> {
                   ],
                   border: Border.all(color: Colors.grey.shade200),
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: 65,
-                      height: 65,
-                      child: Image.asset(
-                        logo,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Icon(
-                            Icons.broken_image,
-                            size: 40,
-                            color: Colors.grey,
-                          );
-                        },
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0), // Yazıların taşmaması için padding eklendi
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 90,
+                        height: 90,
+                        child: Image.asset(
+                          logo,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(
+                              Icons.broken_image,
+                              size: 40,
+                              color: Colors.grey,
+                            );
+                          },
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      title,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF1E293B),
+                      const SizedBox(height: 12),
+                      Text(
+                        title,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1E293B),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             );
