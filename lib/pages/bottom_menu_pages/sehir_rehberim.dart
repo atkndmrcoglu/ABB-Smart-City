@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:smartcity/pages/ihbar_sikayet_pages/istek_sikayet.dart';
-import 'package:smartcity/pages/ihbar_sikayet_pages/atik_bildir.dart';
+import 'package:smartcity/pages/sehir_rehberim_pages/devlet_daireleri.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SehirRehberim extends StatefulWidget {
@@ -15,10 +14,12 @@ class _SehirRehberimState extends State<SehirRehberim> {
     {
       'title': 'TAŞKÖPRÜ KONUKEVİ',
       'logo': 'assets/genc_adana_logo.png',
+      'url': 'https://taskoprukonukevi.adana.bel.tr/',
     },
     {
       'title': 'ALTINKOZA FİLM FESTİVALİ',
       'logo': 'assets/aski_logo.png',
+      'url': 'https://altinkozaff.org.tr/',
     },
     {
       'title': 'RESTORAN/KONAKLAMA',
@@ -51,6 +52,7 @@ class _SehirRehberimState extends State<SehirRehberim> {
     {
       'title': 'DEVLET DAİRELERİ',
       'logo': 'assets/whatsapp.png',
+      'page': const DevletDaireleri(),
     },
   ];
   void _onItemTap(Map<String, dynamic> item) async {

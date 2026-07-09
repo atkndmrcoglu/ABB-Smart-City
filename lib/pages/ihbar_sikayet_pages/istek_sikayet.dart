@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:smartcity/apiler/istek_sikayet_api.dart';
+import 'dart:convert';
+import 'package:flutter/services.dart'; 
 
 class IstekSikayet extends StatefulWidget {
   const IstekSikayet({super.key});
@@ -9,6 +12,8 @@ class IstekSikayet extends StatefulWidget {
 
 class _IstekSikayetState extends State<IstekSikayet> {
   final _formKey = GlobalKey<FormState>();
+  final RequestService _requestService = RequestService();
+  bool _isLoading = false;
 
   String _icerikTuru = 'BİLGİ';
   bool _bilgilerimiGizle = false;
@@ -17,38 +22,25 @@ class _IstekSikayetState extends State<IstekSikayet> {
   String? _secilenYil;
   String? _secilenIlce;
   String? _secilenMahalle;
-  
+  String? _secilenCadde;
+  bool _kvkkOnay = false;
+  bool _captchaOnay = false;
+  String? _secilenFotoPath; 
+  String? _secilenDosyaPath; 
+  String? _secilenFotoAdi;
+  String? _secilenDosyaAdi;
+
+  final List<String> _yillar = List.generate(2026 - 1920 + 1, (index) => (2026 - index).toString());
+  final List<String> _aylar = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+
   final List<String> _ilceler = [
     'ALADAĞ', 'CEYHAN', 'ÇUKUROVA', 'FEKE', 'İMAMOĞLU', 
     'KARAİSALI', 'KARATAŞ', 'KOZAN', 'POZANTI', 'SAİMBEYLİ', 
-    'SARIÇAM', 'SEYHAN', 'TUFENBEYLİ', 'YUMURTALIK', 'YÜREĞİR'
+    'SARIÇAM', 'SEYHAN', 'TUFANBEYLİ', 'YUMURTALIK', 'YÜREĞİR'
   ];
 
-  final Map<String, List<String>> _mahallelerMap = {
-    'ALADAĞ': ['AKÖREN', 'AKPINAR', 'BAŞPINAR', 'BOZTAHTA', 'BÜYÜKSOFULU', 'CERİTLER', 'DAİLER', 'DARILIK', 'DÖLEKLİ', 'EBRİŞİM', 'EĞNER', 'GERDİBİ', 'GİREĞİYENİKÖY', 'GÖKÇEKÖY', 'KABASAKAL', 'KARAHAN', 'KICAK', 'KIŞLAK', 'KIZILDAM', 'KÖKEZ', 'KÖPRÜCÜK', 'KÜP', 'MEDENLİ', 'MANSURLU', 'MAZILIK', 'POSYAĞBASAN', 'SİNANPAŞA', 'TOPALLI', 'UZUNKUYU', 'YETİMLİ', 'YÜKSEKÖREN'],
-    'CEYHAN': ['ADAPINAR', 'ADATEPE', 'AĞAÇLI', 'AĞAÇPINAR', 'AKDAM', 'ALTIGÖZBEKİRLİ', 'ALTIKARA', 'ALTIOCAK', 'ATATÜRK', 'AYDEMİROĞLU', 'AYDINLAR', 'AZİZLİ', 'BAŞÖREN', 'BELEDİYE EVLERİ', 'BİRKENT', 'BOTA', 'BURHANİYE', 'BURHANLI', 'BÜYÜKBURHANİYE', 'BÜYÜKKIRIM', 'BÜYÜKMANGIT', 'ÇAKALDERE', 'CAMUZAĞILI', 'ÇATAKLI', 'ÇATALHÜYÜK', 'ÇEVRETEPE', 'CEYHANBEKİRLİ', 'ÇİÇEKLİ', 'ÇİFTLİKLER', 'CİVANTAYAK', 'ÇOKÇAPINAR', 'CUMHURİYET', 'DAĞISTAN', 'DEĞİRMENDERE', 'DEĞİRMENLİ', 'DİKİLİTAŞ', 'DOKUZTEKNE', 'DORUK', 'DURHASANDEDE', 'DUTLUPINAR', 'EKİNYAZI', 'ELMAGÖLÜ', 'EMEK', 'ERENLER', 'ESENTEPE', 'FATİH SULTAN MEHMET', 'GAZİ OSMAN PAŞA', 'GÜMÜRDÜLÜ', 'GÜNDOĞAN', 'GÜNLÜCE', 'HAMDİLLİ', 'HAMİDİYE', 'HAMİTBEY', 'HAMİTBEYBUCAĞI', 'HÜRRİYET', 'İMRAN', 'İNCEYER', 'İNÖNÜ', 'IRMAKLI', 'İSALI', 'ISIRGANLI', 'İSTİKLAL', 'KARAKAYALI', 'KELEMETİ', 'KILIÇKAYA', 'KIVRIKLI', 'KIZILDERE', 'KONAKOĞLU', 'KÖPRÜLÜ', 'KÖRKUYU', 'KORUKLU', 'KÖRSELİ', 'KÜÇÜKBURHANİYE', 'KÜÇÜKKIRIM', 'KÜÇÜKMANGIT', 'KURTKULAĞI', 'KURTPINAR', 'KUZUCAK', 'MERCİMEK', 'MERCİN', 'MİTHAT PAŞA', 'MODERNEVLER', 'MURADİYE', 'MUSTAFABEYLİ', 'NAMIK KEMAL', 'NARLIK', 'NAZIMBEY YENİKÖY', 'SAĞIRLAR', 'SAĞKAYA', 'ŞAHİN ÖZBİLEN', 'SARIBAHÇE', 'SARIMAZI', 'SARIMAZI SB', 'SARISAKAL', 'ŞEHİT HACI İBRAHİM', 'SELİMİYE', 'SİRKELİ', 'SOĞUKPINAR', 'SOYSALLI', 'TATARLI', 'TATLIKUYU', 'TOKTAMIŞ', 'TUMLU', 'ÜÇDUTYEŞİLOVA', 'ULUS', 'VEYSİYE', 'YALAK', 'YARSUAT', 'YELLİBEL', 'YEŞİLBAHÇE', 'YEŞİLDAM', 'YILANKALE', 'ZÜBEYDE HANIM'],
-    'ÇUKUROVA': ['Güzelyalı Mah.', 'Toros Mah.', 'Kenan Evren Mah.', 'Yurt Mah.'],
-    'FEKE': ['İslam Mah.', 'Karacaoğlan Mah.'],
-    'İMAMOĞLU': ['Fatih Mah.', 'Cumhuriyet Mah.'],
-    'KARAİSALI': ['Karapınar Mah.', 'Selampınar Mah.'],
-    'KARATAŞ': ['Kemaliye Mah.', 'Karşıyaka Mah.'],
-    'KOZAN': ['Tufanpaşa Mah.', 'Arslanpaşa Mah.'],
-    'POZANTI': ['Zafer Mah.', 'İstiklal Mah.'],
-    'SAİMBEYLİ': ['İslam Mah.', 'Yeşilbağ Mah.'],
-    'SARIÇAM': ['Mehmet Akif Ersoy Mah.', 'Beyceli Mah.'],
-    'SEYHAN': ['Baraj Mah.', 'Reşatbey Mah.', 'Gazipaşa Mah.', 'Ziyapaşa Mah.'],
-    'TUFENBEYLİ': ['Merkez Mah.', 'Cumhuriyet Mah.'],
-    'YUMURTALIK': ['Ayas Mah.', 'Devlet Mah.'],
-    'YÜREĞİR': ['Akıncılar Mah.', 'Yavuzlar Mah.', 'Serinevler Mah.'],
-  };
-
-  String? _secilenCadde;
-  String? _secilenDisKapi;
-  String? _secilenIcKapi;
-  bool _kvkkOnay = false;
-  bool _captchaOnay = false;
-  String? _secilenFotoAdi;
-  String? _secilenDosyaAdi;
+  // İlçe -> Mahalle -> Caddeler zincirleme yapısını tutan harita
+  Map<String, Map<String, List<String>>> _adanaAdresMap = {};
 
   final TextEditingController _tcController = TextEditingController();
   final TextEditingController _adSoyadController = TextEditingController();
@@ -56,10 +48,144 @@ class _IstekSikayetState extends State<IstekSikayet> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _ekAdresController = TextEditingController();
   final TextEditingController _aciklamaController = TextEditingController();
+  
+  final TextEditingController _secilenDisKapiController = TextEditingController();
+  final TextEditingController _secilenIcKapiController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _jsonVerisiniYukle();
+  }
+
+  Future<void> _jsonVerisiniYukle() async {
+    try {
+      await loadAdanaData();
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (e) {
+      debugPrint("JSON yükleme esnasında hata oluştu: $e");
+    }
+  }
+
+  Future<void> loadAdanaData() async {
+    final String response = await rootBundle.loadString('assets/adana_data.json');
+    final Map<String, dynamic> data = json.decode(response);
+    
+    _adanaAdresMap = data.map((ilceKey, mahalleMap) {
+      final Map<String, dynamic> icMahalleMap = mahalleMap;
+      return MapEntry(
+        ilceKey.toUpperCase(), 
+        icMahalleMap.map((mahalleKey, caddeListesi) => 
+          MapEntry(mahalleKey, List<String>.from(caddeListesi))
+        ),
+      );
+    });
+  }
+
+  List<String> _getGunler() {
+    if (_secilenAy == null) {
+      return List.generate(31, (index) => (index + 1).toString().padLeft(2, '0'));
+    }
+    int gunSayisi = 31;
+    switch (_secilenAy) {
+      case 'Nisan':
+      case 'Haziran':
+      case 'Eylül':
+      case 'Kasım':
+        gunSayisi = 30;
+        break;
+      case 'Şubat':
+        if (_secilenYil != null) {
+          int yil = int.parse(_secilenYil!);
+          if ((yil % 4 == 0 && yil % 100 != 0) || (yil % 400 == 0)) {
+            gunSayisi = 29;
+          } else {
+            gunSayisi = 28;
+          }
+        } else {
+          gunSayisi = 28;
+        }
+        break;
+    }
+    return List.generate(gunSayisi, (index) => (index + 1).toString().padLeft(2, '0'));
+  }
+
+  Future<void> _formuGonder() async {
+    if (!_formKey.currentState!.validate()) return;
+    
+    if (!_kvkkOnay) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lütfen KVKK metnini onaylayın.')));
+      return;
+    }
+    if (!_captchaOnay) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lütfen reCAPTCHA doğrulamasını yapın.')));
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    String dogumTarihi = "${_secilenYil ?? ''}-${_secilenAy ?? ''}-${_secilenGun ?? ''}";
+
+    Map<String, String> formData = {
+      'icerik_turu': _icerikTuru,
+      'tc_no': _tcController.text.trim(),
+      'dogum_tarihi': dogumTarihi,
+      'ad_soyad': _adSoyadController.text.trim(),
+      'telefon': _telefonController.text.trim(),
+      'email': _emailController.text.trim(),
+      'bilgileri_gizle': _bilgilerimiGizle ? '1' : '0',
+      'ilce': _secilenIlce ?? '',
+      'mahalle': _secilenMahalle ?? '',
+      'cadde_sokak': _secilenCadde ?? '',
+      'dis_kapi_no': _secilenDisKapiController.text.trim(),
+      'ic_kapi_no': _secilenIcKapiController.text.trim(),
+      'ek_adres': _ekAdresController.text.trim(),
+      'aciklama': _aciklamaController.text.trim(),
+    };
+
+    bool basariliMi = await _requestService.gonderIstekSikayet(
+      veri: formData,
+      fotoPath: _secilenFotoPath,
+      dosyaPath: _secilenDosyaPath,
+    );
+
+    setState(() => _isLoading = false);
+
+    if (basariliMi) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Form başarıyla gönderildi!'), backgroundColor: Colors.green),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Form gönderilirken bir hata oluştu.'), backgroundColor: Colors.red),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _tcController.dispose();
+    _adSoyadController.dispose();
+    _telefonController.dispose();
+    _emailController.dispose();
+    _ekAdresController.dispose();
+    _aciklamaController.dispose();
+    _secilenDisKapiController.dispose();
+    _secilenIcKapiController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    List<String> aktifMahalleler = _secilenIlce != null ? (_mahallelerMap[_secilenIlce] ?? []) : [];
+    List<String> aktifMahalleler = _secilenIlce != null 
+        ? (_adanaAdresMap[_secilenIlce]?.keys.toList() ?? []) 
+        : [];
+
+    List<String> aktifCaddeler = (_secilenIlce != null && _secilenMahalle != null)
+        ? (_adanaAdresMap[_secilenIlce]?[_secilenMahalle] ?? [])
+        : [];
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -67,268 +193,274 @@ class _IstekSikayetState extends State<IstekSikayet> {
         backgroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black, size: 28),
-          onPressed: () {
-            Navigator.maybePop(context);
-          },
+          onPressed: () => Navigator.maybePop(context),
         ),
-        title: const Text(
-          'İSTEK ŞİKAYET',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.w500),
-        ),
+        title: const Text('İSTEK ŞİKAYET', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w500)),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // --- İÇERİK TÜRÜ ---
-                _buildSectionTitle('İçerik Türü', zorunlu: true),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: [
-                    _buildRadioTile('BİLGİ', Icons.info_outline),
-                    _buildRadioTile('TALEP', Icons.help_outline),
-                    _buildRadioTile('TEŞEKKÜR', Icons.front_hand_outlined),
-                    _buildRadioTile('ŞİKAYET', Icons.error_outline),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                _buildSectionTitle('Kişisel Bilgiler', altCizgi: true),
-                const SizedBox(height: 12),
-
-                _buildFormRow(
-                  label: 'TC Kimlik No',
-                  zorunlu: true,
-                  child: _buildTextField(_tcController, keyboardType: TextInputType.number),
-                ),
-                _buildFormRow(
-                  label: 'Doğum Tarihi',
-                  zorunlu: true,
-                  child: Row(
+      body: _isLoading 
+          ? const Center(child: CircularProgressIndicator()) 
+          : SingleChildScrollView(
+              child: Form(
+                key: _formKey,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(child: _buildSimpleDropdown('Gün', ['01', '02', '03', '04' , '05'], _secilenGun, (v) => setState(() => _secilenGun = v))),
-                      const SizedBox(width: 4),
-                      Expanded(child: _buildSimpleDropdown('Ay', ['Ocak', 'Şubat', ''], _secilenAy, (v) => setState(() => _secilenAy = v))),
-                      const SizedBox(width: 4),
-                      Expanded(child: _buildSimpleDropdown('Yıl', ['2000', '2001'], _secilenYil, (v) => setState(() => _secilenYil = v))),
-                    ],
-                  ),
-                ),
-                _buildFormRow(
-                  label: 'Ad Soyad',
-                  zorunlu: true,
-                  child: _buildTextField(_adSoyadController),
-                ),
-                _buildFormRow(
-                  label: 'Cep Telefonu',
-                  zorunlu: true,
-                  child: _buildTextField(_telefonController, hint: '(___) ___ __ __', keyboardType: TextInputType.phone),
-                ),
-                _buildFormRow(
-                  label: 'E-Mail',
-                  child: _buildTextField(_emailController, keyboardType: TextInputType.emailAddress),
-                ),
-                _buildFormRow(
-                  label: 'Bilgilerimi Gizle',
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Checkbox(
-                      value: _bilgilerimiGizle,
-                      activeColor: Colors.blue,
-                      onChanged: (bool? value) {
-                        setState(() {
-                          _bilgilerimiGizle = value ?? false;
-                        });
-                      },
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
+                      _buildSectionTitle('İçerik Türü', zorunlu: true),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: [
+                          _buildRadioTile('BİLGİ', Icons.info_outline),
+                          _buildRadioTile('TALEP', Icons.help_outline),
+                          _buildRadioTile('TEŞEKKÜR', Icons.front_hand_outlined),
+                          _buildRadioTile('ŞİKAYET', Icons.error_outline),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
 
-                // --- ADRES BİLGİLERİ ---
-                _buildSectionTitle('Talep / Şikayet Adres Bilgileri', altCizgi: true),
-                const SizedBox(height: 12),
+                      _buildSectionTitle('Kişisel Bilgiler', altCizgi: true),
+                      const SizedBox(height: 12),
 
-                _buildFormRow(
-                  label: 'İlçe',
-                  zorunlu: true,
-                  child: _buildFormDropdown(_ilceler, _secilenIlce, (v) {
-                    setState(() {
-                      _secilenIlce = v;
-                      _secilenMahalle = null;
-                    });
-                  }),
-                ),
-                _buildFormRow(
-                  label: 'Mahalle',
-                  zorunlu: true,
-                  child: _buildFormDropdown(aktifMahalleler, _secilenMahalle, (v) => setState(() => _secilenMahalle = v), disabledHint: 'Önce İlçe Seçiniz'),
-                ),
-                _buildFormRow(
-                  label: 'Cadde/ Sokak',
-                  zorunlu: true,
-                  child: _buildFormDropdown(['İstasyon Cad.', 'Sivas Cad.'], _secilenCadde, (v) => setState(() => _secilenCadde = v)),
-                ),
-                _buildFormRow(
-                  label: 'Dış Kapı No',
-                  child: _buildFormDropdown(['1', '2', '3'], _secilenDisKapi, (v) => setState(() => _secilenDisKapi = v)),
-                ),
-                _buildFormRow(
-                  label: 'İç Kapı No',
-                  child: _buildFormDropdown(['A', 'B', 'C'], _secilenIcKapi, (v) => setState(() => _secilenIcKapi = v)),
-                ),
-                _buildFormRow(
-                  label: 'Ek Adres',
-                  child: _buildTextField(_ekAdresController, maxLines: 2),
-                ),
-                const SizedBox(height: 24),
-
-                // --- YENİ EKLENEN: İÇERİK BİLGİLERİ ---
-                _buildSectionTitle('İçerik Bilgileri', altCizgi: true),
-                const SizedBox(height: 12),
-
-                // Açıklama Alanı
-                _buildFormRow(
-                  label: 'Açıklama',
-                  zorunlu: true,
-                  child: _buildTextField(_aciklamaController, maxLines: 5),
-                ),
-                const Divider(color: Color(0xFFEEEEEE), height: 1),
-
-                // Fotoğraf Yükle
-                _buildFormRow(
-                  label: 'Fotoğraf Yükle',
-                  child: InkWell(
-                    onTap: () => setState(() => _secilenFotoAdi = "fotograf_1.jpg"),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.image, color: Colors.grey, size: 28),
-                        if (_secilenFotoAdi != null)
-                          Padding(
-                            padding: const EdgeInsets.only(left: 8.0),
-                            child: Text(_secilenFotoAdi!, style: const TextStyle(fontSize: 12, color: Colors.green)),
-                          )
-                      ],
-                    ),
-                  ),
-                ),
-                const Divider(color: Color(0xFFEEEEEE), height: 1),
-
-                // Dosya Yükle
-                _buildFormRow(
-                  label: 'Dosya Yükle',
-                  child: InkWell(
-                    onTap: () => setState(() => _secilenDosyaAdi = "belge.pdf"),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.attach_file, color: Colors.grey, size: 28),
-                        if (_secilenDosyaAdi != null)
-                          Padding(
-                            padding: const EdgeInsets.only(left: 8.0),
-                            child: Text(_secilenDosyaAdi!, style: const TextStyle(fontSize: 12, color: Colors.green)),
-                          )
-                      ],
-                    ),
-                  ),
-                ),
-                const Divider(color: Color(0xFFEEEEEE), height: 24),
-
-                // KVKK Aydınlatma Metni Checkbox'ı (Görseldeki gibi ortalanmış)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Checkbox(
-                      value: _kvkkOnay,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                      onChanged: (v) => setState(() => _kvkkOnay = v ?? false),
-                    ),
-                    const Text(
-                      'KVKK AYDINLATMA METNİ',
-                      style: TextStyle(color: Color(0xFF3A9AD4), fontWeight: FontWeight.bold, fontSize: 14),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                // reCAPTCHA Tasarımı
-                Center(
-                  child: Container(
-                    width: 290,
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF9F9F9),
-                      border: Border.all(color: const Color(0xFFD3D3D3)),
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
+                      _buildFormRow(
+                        label: 'TC Kimlik No',
+                        zorunlu: true,
+                        child: _buildTextFormField(_tcController, keyboardType: TextInputType.number, validator: (v) => v == null || v.isEmpty ? 'Zorunlu alan' : null),
+                      ),
+                      _buildFormRow(
+                        label: 'Doğum Tarihi',
+                        zorunlu: true,
+                        child: Row(
                           children: [
-                            Checkbox(
-                              value: _captchaOnay,
-                              onChanged: (v) => setState(() => _captchaOnay = v ?? false),
+                            Expanded(
+                              child: _buildSimpleDropdown('Gün', _getGunler(), _secilenGun, (v) => setState(() => _secilenGun = v)),
                             ),
-                            const Text(
-                              'Ben robot değilim',
-                              style: TextStyle(fontSize: 14, color: Colors.black),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: _buildSimpleDropdown('Ay', _aylar, _secilenAy, (v) {
+                                setState(() {
+                                  _secilenAy = v;
+                                  if (_secilenGun != null && !_getGunler().contains(_secilenGun)) {
+                                    _secilenGun = null;
+                                  }
+                                });
+                              }),
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: _buildSimpleDropdown('Yıl', _yillar, _secilenYil, (v) {
+                                setState(() {
+                                  _secilenYil = v;
+                                  if (_secilenAy == 'Şubat' && _secilenGun != null && !_getGunler().contains(_secilenGun)) {
+                                    _secilenGun = null;
+                                  }
+                                });
+                              }),
                             ),
                           ],
                         ),
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Image.network(
-                              'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/RecaptchaLogo.svg/1200px-RecaptchaLogo.svg.png',
-                              height: 28,
-                              errorBuilder: (c, o, s) => const Icon(Icons.refresh, color: Colors.grey),
-                            ),
-                            const Text('reCAPTCHA', style: TextStyle(fontSize: 8, color: Colors.grey)),
-                          ],
-                        )
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
+                      ),
+                      _buildFormRow(
+                        label: 'Ad Soyad',
+                        zorunlu: true,
+                        child: _buildTextFormField(_adSoyadController, validator: (v) => v == null || v.isEmpty ? 'Zorunlu alan' : null),
+                      ),
+                      _buildFormRow(
+                        label: 'Cep Telefonu',
+                        zorunlu: true,
+                        child: _buildTextFormField(_telefonController, hint: '(___) ___ __ __', keyboardType: TextInputType.phone, validator: (v) => v == null || v.isEmpty ? 'Zorunlu alan' : null),
+                      ),
+                      _buildFormRow(
+                        label: 'E-Mail',
+                        child: _buildTextFormField(_emailController, keyboardType: TextInputType.emailAddress),
+                      ),
+                      _buildFormRow(
+                        label: 'Bilgilerimi Gizle',
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Checkbox(
+                            value: _bilgilerimiGizle,
+                            activeColor: Colors.blue,
+                            onChanged: (bool? value) => setState(() => _bilgilerimiGizle = value ?? false),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
 
-                // Gönder Butonu (Görseldeki gibi Sağa Yaslı ve Mavi)
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate() && _kvkkOnay && _captchaOnay) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Form başarıyla gönderildi!')),
-                        );
-                      }
-                    },
-                    icon: const Icon(Icons.save, size: 18),
-                    label: const Text('Gönder', style: TextStyle(fontSize: 15)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6BA4E0), // Görseldeki açık mavi tonu
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
-                    ),
+                      _buildSectionTitle('Talep / Şikayet Adres Bilgileri', altCizgi: true),
+                      const SizedBox(height: 12),
+
+                      _buildFormRow(
+                        label: 'İlçe',
+                        zorunlu: true,
+                        child: _buildFormDropdown(_ilceler, _secilenIlce, (v) {
+                          setState(() {
+                            _secilenIlce = v;
+                            _secilenMahalle = null; 
+                            _secilenCadde = null;
+                          });
+                        }),
+                      ),
+                      _buildFormRow(
+                        label: 'Mahalle',
+                        zorunlu: true,
+                        child: _buildFormDropdown(
+                          aktifMahalleler, 
+                          _secilenMahalle, 
+                          (v) {
+                            setState(() {
+                              _secilenMahalle = v;
+                              _secilenCadde = null; 
+                            });
+                          }, 
+                          disabledHint: 'Önce İlçe Seçiniz',
+                        ),
+                      ),
+                      _buildFormRow(
+                        label: 'Cadde/ Sokak',
+                        zorunlu: true,
+                        child: _buildFormDropdown(
+                          aktifCaddeler, 
+                          _secilenCadde, 
+                          (v) => setState(() => _secilenCadde = v),
+                          disabledHint: 'Önce Mahalle Seçiniz',
+                        ),
+                      ),
+                      _buildFormRow(
+                        label: 'Dış Kapı No',
+                        child: _buildTextFormField(_secilenDisKapiController, keyboardType: TextInputType.number),
+                      ),
+                      _buildFormRow(
+                        label: 'İç Kapı No',
+                         child: _buildTextFormField(_secilenIcKapiController, keyboardType: TextInputType.text),
+                      ),
+                      _buildFormRow(
+                        label: 'Ek Adres',
+                        child: _buildTextFormField(_ekAdresController, maxLines: 2),
+                      ),
+                      const SizedBox(height: 24),
+
+                      _buildSectionTitle('İçerik Bilgileri', altCizgi: true),
+                      const SizedBox(height: 12),
+
+                      _buildFormRow(
+                        label: 'Açıklama',
+                        zorunlu: true,
+                        child: _buildTextFormField(_aciklamaController, maxLines: 5, validator: (v) => v == null || v.isEmpty ? 'Açıklama boş bırakılamaz' : null),
+                      ),
+                      const Divider(color: Color(0xFFEEEEEE), height: 1),
+
+                      _buildFormRow(
+                        label: 'Fotoğraf Yükle',
+                        child: InkWell(
+                          onTap: () {
+                            setState(() {
+                              _secilenFotoAdi = "fotograf_1.jpg";
+                              _secilenFotoPath = "/data/user/0/com.example/cache/fotograf_1.jpg"; 
+                            });
+                          },
+                          child: Row(
+                            children: [
+                              const Icon(Icons.image, color: Colors.grey, size: 28),
+                              if (_secilenFotoAdi != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 8.0),
+                                  child: Text(_secilenFotoAdi!, style: const TextStyle(fontSize: 12, color: Colors.green)),
+                                )
+                            ],
+                          ),
+                        ),
+                      ),
+                      const Divider(color: Color(0xFFEEEEEE), height: 1),
+
+                      _buildFormRow(
+                        label: 'Dosya Yükle',
+                        child: InkWell(
+                          onTap: () {
+                            setState(() {
+                              _secilenDosyaAdi = "belge.pdf";
+                              _secilenDosyaPath = "/data/user/0/com.example/cache/belge.pdf";
+                            });
+                          },
+                          child: Row(
+                            children: [
+                              const Icon(Icons.attach_file, color: Colors.grey, size: 28),
+                              if (_secilenDosyaAdi != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 8.0),
+                                  child: Text(_secilenDosyaAdi!, style: const TextStyle(fontSize: 12, color: Colors.green)),
+                                )
+                            ],
+                          ),
+                        ),
+                      ),
+                      const Divider(color: Color(0xFFEEEEEE), height: 24),
+
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Checkbox(
+                            value: _kvkkOnay,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                            onChanged: (v) => setState(() => _kvkkOnay = v ?? false),
+                          ),
+                          const Text('KVKK AYDINLATMA METNİ', style: TextStyle(color: Color(0xFF3A9AD4), fontWeight: FontWeight.bold, fontSize: 14)),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      Center(
+                        child: Container(
+                          width: 290,
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(color: const Color(0xFFF9F9F9), border: Border.all(color: const Color(0xFFD3D3D3)), borderRadius: BorderRadius.circular(3)),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Checkbox(value: _captchaOnay, onChanged: (v) => setState(() => _captchaOnay = v ?? false)),
+                                  const Text('Ben robot değilim', style: TextStyle(fontSize: 14, color: Colors.black)),
+                                ],
+                              ),
+                              Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Image.network('https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/RecaptchaLogo.svg/1200px-RecaptchaLogo.svg.png', height: 28, errorBuilder: (c, o, s) => const Icon(Icons.refresh, color: Colors.grey)),
+                                  const Text('reCAPTCHA', style: TextStyle(fontSize: 8, color: Colors.grey)),
+                                ],
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: ElevatedButton.icon(
+                          onPressed: _formuGonder,
+                          icon: const Icon(Icons.save, size: 18),
+                          label: const Text('Gönder', style: TextStyle(fontSize: 15)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF6BA4E0),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
-      ),
     );
   }
 
-  // Önceki fonksiyonel şablonlar aynen korunuyor...
   Widget _buildSectionTitle(String title, {bool zorunlu = false, bool altCizgi = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -365,63 +497,62 @@ class _IstekSikayetState extends State<IstekSikayet> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, {String? hint, TextInputType keyboardType = TextInputType.text, int maxLines = 1}) {
-    return Container(
-      height: maxLines == 1 ? 38 : null,
-      decoration: BoxDecoration(border: Border.all(color: const Color(0xFFCCCCCC)), borderRadius: BorderRadius.circular(2)),
-      child: TextField(
-        controller: controller,
-        keyboardType: keyboardType,
-        maxLines: maxLines,
-        style: const TextStyle(fontSize: 14),
-        decoration: InputDecoration(
-          hintText: hint,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          border: InputBorder.none,
-          isDense: true,
-        ),
+  Widget _buildTextFormField(TextEditingController controller, {String? hint, TextInputType keyboardType = TextInputType.text, int maxLines = 1, FormFieldValidator<String>? validator}) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      maxLines: maxLines,
+      validator: validator,
+      style: const TextStyle(fontSize: 14),
+      decoration: InputDecoration(
+        hintText: hint,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        border: OutlineInputBorder(borderSide: const BorderSide(color: Color(0xFFCCCCCC)), borderRadius: BorderRadius.circular(2)),
+        enabledBorder: OutlineInputBorder(borderSide: const BorderSide(color: Color(0xFFCCCCCC)), borderRadius: BorderRadius.circular(2)),
+        isDense: true,
       ),
     );
   }
 
   Widget _buildFormDropdown(List<String> items, String? selectedValue, ValueChanged<String?> onChanged, {String? disabledHint}) {
-    return Container(
-      height: 38,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFFCCCCCC)),
-        borderRadius: BorderRadius.circular(2),
+    return DropdownButtonFormField<String>(
+      value: items.contains(selectedValue) ? selectedValue : null,
+      isExpanded: true,
+      disabledHint: Text(disabledHint ?? '', style: const TextStyle(color: Colors.grey, fontSize: 13)),
+      menuMaxHeight: 260,
+      icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
+      style: const TextStyle(fontSize: 14, color: Colors.black),
+      decoration: InputDecoration(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+        border: OutlineInputBorder(borderSide: const BorderSide(color: Color(0xFFCCCCCC)), borderRadius: BorderRadius.circular(2)),
+        enabledBorder: OutlineInputBorder(borderSide: const BorderSide(color: Color(0xFFCCCCCC)), borderRadius: BorderRadius.circular(2)),
+        isDense: true,
       ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: selectedValue,
-          isExpanded: true,
-          disabledHint: Text(disabledHint ?? '', style: const TextStyle(color: Colors.grey, fontSize: 13)),
-          menuMaxHeight: 260,
-          icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
-          items: items.map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: const TextStyle(fontSize: 14)))).toList(),
-          onChanged: items.isEmpty ? null : onChanged,
-        ),
-      ),
+      items: items.isEmpty 
+          ? null 
+          : items.map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: const TextStyle(fontSize: 14)))).toList(),
+      onChanged: items.isEmpty ? null : onChanged,
+      validator: (v) => v == null ? 'Seçim yapınız' : null,
     );
   }
 
   Widget _buildSimpleDropdown(String hint, List<String> items, String? selectedValue, ValueChanged<String?> onChanged) {
-    return Container(
-      height: 38,
-      padding: const EdgeInsets.symmetric(horizontal: 6),
-      decoration: BoxDecoration(border: Border.all(color: const Color(0xFFCCCCCC)), borderRadius: BorderRadius.circular(2)),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: selectedValue,
-          hint: Text(hint, style: const TextStyle(color: Colors.grey, fontSize: 13)),
-          isExpanded: true,
-          menuMaxHeight: 200,
-          icon: const Icon(Icons.unfold_more, color: Colors.grey, size: 18),
-          items: items.map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: const TextStyle(fontSize: 13)))).toList(),
-          onChanged: onChanged,
-        ),
+    return DropdownButtonFormField<String>(
+      value: selectedValue,
+      hint: Text(hint, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+      isExpanded: true,
+      menuMaxHeight: 200,
+      icon: const Icon(Icons.unfold_more, color: Colors.grey, size: 18),
+      style: const TextStyle(fontSize: 13, color: Colors.black),
+      decoration: InputDecoration(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 6),
+        border: OutlineInputBorder(borderSide: const BorderSide(color: Color(0xFFCCCCCC)), borderRadius: BorderRadius.circular(2)),
+        enabledBorder: OutlineInputBorder(borderSide: const BorderSide(color: Color(0xFFCCCCCC)), borderRadius: BorderRadius.circular(2)),
+        isDense: true,
       ),
+      items: items.map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: const TextStyle(fontSize: 13)))).toList(),
+      onChanged: onChanged,
+      validator: (v) => v == null ? '!' : null,
     );
   }
 

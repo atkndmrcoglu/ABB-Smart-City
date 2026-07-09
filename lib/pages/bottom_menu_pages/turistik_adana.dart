@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smartcity/pages/turistik_adana_pages/tarihi_turistik_yerler.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class Adana extends StatefulWidget {
@@ -12,13 +13,37 @@ class _AdanaState extends State<Adana> {
   final List<Map<String, dynamic>> items = [
     {
       'title': 'ADANA 360',
-      'logo': 'assets/genc_adana_logo.png',
+      'logo': 'assets/turistik_adana_images/adana360.png',
+      'url': 'https://www.adana.bel.tr/tr/360-derece'
     },
     {
       'title': 'TARİHİ TURİSTİK YERLER',
-      'logo': 'assets/aski_logo.png',
+      'logo': 'assets/turistik_adana_images/tarihi_turistik_yerler.png',
+      'page': const TuristikYerler()
     },
   ];
+
+  void _onItemTap(BuildContext context, Map<String, dynamic> item) async {
+    if (item['page'] != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => item['page'] as Widget),
+      );
+    } 
+    else if (item['url'] != null) {
+      final Uri url = Uri.parse(item['url'] as String);
+      final bool isExternal = item['isExternal'] == true;
+
+      if (!await launchUrl(
+        url, 
+        mode: isExternal ? LaunchMode.externalApplication : LaunchMode.inAppWebView,
+        webViewConfiguration: const WebViewConfiguration(enableJavaScript: true),
+      )) {
+        debugPrint('Could not launch: ${item['url']}');
+      }
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -48,10 +73,12 @@ class _AdanaState extends State<Adana> {
             childAspectRatio: 0.95,
           ),
           itemBuilder: (context, index) {
+            final item = items[index];
             final String title = (items[index]['title'] ?? 'Uygulama').toString();
             final String logo = (items[index]['logo'] ?? '').toString();
 
             return InkWell(
+              onTap: () => _onItemTap(context, item),
               borderRadius: BorderRadius.circular(16),
               child: Container(
                 decoration: BoxDecoration(
@@ -70,31 +97,23 @@ class _AdanaState extends State<Adana> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    SizedBox(
-                      width: 65,
-                      height: 65,
-                      child: Image.asset(
-                        logo,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Icon(
-                            Icons.broken_image,
-                            size: 40,
-                            color: Colors.grey,
-                          );
-                        },
-                      ),
-                    ),
+                   Image.asset(
+                              item['logo'] as String,
+                              height: 90,
+                              width: 90,
+                              errorBuilder: (context, error, stackTrace) => 
+                                  const Icon(Icons.apps, size: 45, color: Colors.grey),
+                            ),
                     const SizedBox(height: 12),
                     Text(
-                      title,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF1E293B),
-                      ),
-                    ),
+                              item['title'] as String,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF1E293B),
+                              ),
+                            ),
                   ],
                 ),
               ),

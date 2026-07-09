@@ -62,7 +62,6 @@ class WifiNoktalari extends StatelessWidget {
       body: FlutterMap(
         options: MapOptions(initialCenter: adanaMerkez, initialZoom: 12.0),
         children: [
-          // Google Maps stiline en yakın ücretsiz görünüm
           TileLayer(
             urlTemplate: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
             subdomains: const ['a', 'b', 'c', 'd'],
@@ -80,8 +79,8 @@ class WifiNoktalari extends StatelessWidget {
           child: const Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.wifi, color: Colors.blue, size: 14),
-              Icon(Icons.settings_input_antenna, color: Color(0xFF1E293B), size: 14),
+              Icon(Icons.wifi, color: Colors.blue, size: 15),
+              Icon(Icons.cell_tower_outlined, color: Color(0xFF1E293B), size: 25),
             ],
           ),
         ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:smartcity/pages/ihbar_sikayet_pages/istek_sikayet.dart';
 import 'package:smartcity/pages/ihbar_sikayet_pages/atik_bildir.dart';
-import 'package:smartcity/pages/ihbar_sikayet_pages/atik_bildir.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class IhbarSikayet extends StatefulWidget {

@@ -61,11 +61,6 @@ class BottomMenu extends StatelessWidget {
         'page': const SehirRehberim(),
       },
       {
-        'title': 'TRAFİK YOĞUNLUĞU',
-        'logo': 'assets/bottom_drawer_images/trafik_yogunlugu.png',
-        'url': 'https://www.adana.bel.tr',
-      },
-      {
         'title': 'KÜTÜPHANELER',
         'logo': 'assets/bottom_drawer_images/kutuphane.png',
         'url': 'https://kutuphane.adana.bel.tr/#',
@@ -116,7 +111,7 @@ class BottomMenu extends StatelessWidget {
       initialChildSize: 0.22, 
       minChildSize: 0.22,    
       maxChildSize: 0.85,     
-      snap: true,             
+      snap: true,            
       builder: (context, scrollController) {
         return Container(
           decoration: BoxDecoration(
@@ -130,72 +125,80 @@ class BottomMenu extends StatelessWidget {
               ),
             ],
           ),
-          child: Column(
-            children: [
-              const SizedBox(height: 12),
-              Icon(Icons.keyboard_arrow_up_rounded, color: Colors.grey[400], size: 28),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 4.0),
-                child: Text(
-                  'Tıkla ve Hizmetleri Gör',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w400,
-                    color: Color(0xFF00B48B),
-                  ),
+          child: CustomScrollView(
+            controller: scrollController,
+            slivers: [
+              SliverToBoxAdapter(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: 12),
+                    Icon(Icons.keyboard_arrow_up_rounded, color: Colors.grey[400], size: 28),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4.0),
+                      child: Text(
+                        'Tıkla ve Hizmetleri Gör',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                    const Divider(height: 1, thickness: 1),
+                  ],
                 ),
               ),
-              
-              const Divider(height: 1, thickness: 1),
-
-              Expanded(
-                child: GridView.builder(
-                  controller: scrollController, 
-                  padding: const EdgeInsets.all(16.0),
-                  itemCount: items.length,
+            
+              SliverPadding(
+                padding: const EdgeInsets.all(16.0),
+                sliver: SliverGrid(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
                     childAspectRatio: 0.95, 
                   ),
-                  itemBuilder: (context, index) {
-                    final item = items[index];
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final item = items[index];
 
-                    return InkWell(
-                      onTap: () => _onItemTap(context, item),
-                      borderRadius: BorderRadius.circular(16),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.grey.shade100),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Image.asset(
-                              item['logo'] as String,
-                              height: 90,
-                              width: 90,
-                              errorBuilder: (context, error, stackTrace) => 
-                                  const Icon(Icons.apps, size: 45, color: Colors.grey),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              item['title'] as String,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF1E293B),
+                      return InkWell(
+                        onTap: () => _onItemTap(context, item),
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.grey.shade100),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image.asset(
+                                item['logo'] as String,
+                                height: 90,
+                                width: 90,
+                                errorBuilder: (context, error, stackTrace) => 
+                                    const Icon(Icons.apps, size: 45, color: Colors.grey),
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 12),
+                              Text(
+                                item['title'] as String,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF1E293B),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                    childCount: items.length,
+                  ),
                 ),
               ),
             ],
