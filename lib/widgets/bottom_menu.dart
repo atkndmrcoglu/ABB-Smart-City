@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:smartcity/pages/bottom_menu_pages/aski_birimler.dart';
+import 'package:smartcity/pages/bottom_menu_pages/eczaneler.dart';
 import 'package:smartcity/pages/bottom_menu_pages/hizmet_talepleri.dart';
 import 'package:smartcity/pages/bottom_menu_pages/ihbar_sikayet.dart';
 import 'package:smartcity/pages/bottom_menu_pages/kentkart_islemleri.dart';
 import 'package:smartcity/pages/bottom_menu_pages/sehir_rehberim.dart';
 import 'package:smartcity/pages/bottom_menu_pages/turistik_adana.dart';
+import 'package:smartcity/pages/bottom_menu_pages/ulasim.dart';
 import 'package:smartcity/pages/bottom_menu_pages/wifi_noktalari.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -38,7 +40,7 @@ class BottomMenu extends StatelessWidget {
       {
         'title': 'OTOBÜSLER',
         'logo': 'assets/bottom_drawer_images/otobus.png',
-        'url': 'https://www.adana.bel.tr/tr/duyuru',
+        'page': const Ulasim(),
       },
       {
         'title': 'KENTKART İŞLEMLERİ',
@@ -48,7 +50,7 @@ class BottomMenu extends StatelessWidget {
       {
         'title': 'ECZANELER',
         'logo': 'assets/bottom_drawer_images/eczane.png',
-        'url': 'https://www.adana.bel.tr',
+        'page': const Eczaneler(),
       },
       {
         'title': 'WİFİ NOKTALARI',

@@ -127,6 +127,7 @@ class _TuristikYerlerState extends State<TuristikYerler> {
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Harita uygulaması başlatılamadı.')),
       );

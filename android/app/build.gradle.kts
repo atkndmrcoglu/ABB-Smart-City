@@ -20,7 +20,7 @@ android {
     }
 
     defaultConfig {
-        minSdk = 21
+        minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -33,6 +33,22 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+    // Tüm projeler oluşturulurken yapılandırmayı henüz aşamadayken yakalayıp eziyoruz
+allprojects {
+    tasks.withType<com.android.build.gradle.tasks.GenerateBuildConfig>().configureEach {
+        // Build config aşamasında eski sürümleri engellemek için
+    }
+    
+    afterEvaluate {
+        if (plugins.hasPlugin("com.android.application") || plugins.hasPlugin("com.android.library")) {
+            val android = extensions.findByName("android") as? com.android.build.gradle.BaseExtension
+            android?.apply {
+                buildToolsVersion = "34.0.0"
+                compileSdkVersion(34)
+            }
+        }
+    }
+}
 }
 
 flutter {

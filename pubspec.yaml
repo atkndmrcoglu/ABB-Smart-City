@@ -18,6 +18,7 @@ dependencies:
   image_picker: ^1.2.3
   google_maps_flutter: ^2.17.1
   flutter_launcher_icons: ^0.14.4
+  http: ^1.6.0
       
 
 dev_dependencies:
@@ -34,6 +35,8 @@ flutter:
     - assets/hizmet_talepleri_images/
     - assets/ihbar_sikayet_images/
     - assets/turistik_adana_images/
+    - assets/json_files/
+    - assets/homepage_images/
 
 flutter_launcher_icons:
   android: "launcher_icon"

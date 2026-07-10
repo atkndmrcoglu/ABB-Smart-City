@@ -153,6 +153,8 @@ class _IstekSikayetState extends State<IstekSikayet> {
 
     setState(() => _isLoading = false);
 
+     if (!mounted) return;
+
     if (basariliMi) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Form başarıyla gönderildi!'), backgroundColor: Colors.green),

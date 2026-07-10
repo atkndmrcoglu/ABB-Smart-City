@@ -80,7 +80,7 @@ class WifiNoktalari extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.wifi, color: Colors.blue, size: 15),
-              Icon(Icons.cell_tower_outlined, color: Color(0xFF1E293B), size: 25),
+              Icon(Icons.online_prediction, color: Color(0xFF1E293B), size: 25),
             ],
           ),
         ),

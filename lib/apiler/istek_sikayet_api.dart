@@ -1,5 +1,5 @@
-import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
 
 class RequestService {
   // BASE URL'inizi buraya tanımlayın (örn: https://api.belediye.gov.tr veya local test için http://10.0.2.2:8000)
@@ -55,14 +55,14 @@ class RequestService {
       var response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        print("API Yanıtı Başarılı: ${response.body}");
+        debugPrint("API Yanıtı Başarılı: ${response.body}");
         return true;
       } else {
-        print("API Sunucu Hatası (${response.statusCode}): ${response.body}");
+        debugPrint("API Sunucu Hatası (${response.statusCode}): ${response.body}");
         return false;
       }
     } catch (e) {
-      print("API Bağlantı Hatası: $e");
+      debugPrint("API Bağlantı Hatası: $e");
       return false;
     }
   }

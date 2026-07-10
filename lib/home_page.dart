@@ -12,7 +12,57 @@ class HOMEPAGE extends StatefulWidget {
 }
 
 class _HOMEPAGEState extends State<HOMEPAGE> {
+  late PageController _pageController;
+  int _currentImageIndex = 0;
   
+  final List<String> _backgroundImages = [
+    'assets/homepage_images/istasyon.png',
+    'assets/homepage_images/buyuksaat-2.png',
+    'assets/homepage_images/karatas.png',
+    'assets/homepage_images/kup-selalesi.png',
+    'assets/homepage_images/merkez-camii.png',
+    'assets/homepage_images/misis-koprusu.png',
+    'assets/homepage_images/musa-bali-konagi.png',
+    'assets/homepage_images/portakal-agaci.png',
+    'assets/homepage_images/portakal.png',
+    'assets/homepage_images/seyhan-nehri.png',
+    'assets/homepage_images/tas-kopru.png',
+    'assets/homepage_images/tepebag-evleri.png',
+    'assets/homepage_images/toroslar.png',
+    'assets/homepage_images/ulu-camii.png',
+    'assets/homepage_images/varda-1.png',
+    'assets/homepage_images/varda-2.png',
+
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+    
+    // Her 2 saniyede bir resim değiştir
+    Future.delayed(Duration.zero, () {
+      _startImageSlideshow();
+    });
+  }
+
+  void _startImageSlideshow() {
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          _currentImageIndex = (_currentImageIndex + 1) % _backgroundImages.length;
+        });
+        _startImageSlideshow(); // Sonsuz döngü
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   Future<List<WeatherModel>> _fetchLiveWeatherData() async {
     await Future.delayed(const Duration(seconds: 2));
     return [
@@ -53,15 +103,17 @@ class _HOMEPAGEState extends State<HOMEPAGE> {
               _showLoadingDialog(context);
               try {
                 List<WeatherModel> liveForecastList = await _fetchLiveWeatherData();
-                if (mounted) return;
-                 Navigator.of(context).pop();
-                _showCircularWeatherPopup(context, liveForecastList);
+                if (mounted) {
+                  Navigator.of(context).pop();
+                  _showCircularWeatherPopup(context, liveForecastList);
+                }
               } catch (e) {
-                if (mounted) return;
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Veri çekilemedi: $e')),
-                );
+                if (mounted) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Veri çekilemedi: $e')),
+                  );
+                }
               }
             },
             icon: const Icon(
@@ -74,19 +126,63 @@ class _HOMEPAGEState extends State<HOMEPAGE> {
       ),
       body: Stack(
         children: [
+          // Arka plan resimleri için PageView
           Positioned.fill(
-            child: Container(
-              color: const Color(0xFFF1F5F9), 
-              child: const SafeArea(
-                child: Center(
-                  child: Text(
-                    'Welcome to the Home Page!',
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: _backgroundImages.length,
+              onPageChanged: (index) {
+                setState(() {
+                  _currentImageIndex = index;
+                });
+              },
+              itemBuilder: (context, index) {
+                return Image.asset(
+                  _backgroundImages[index],
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: double.infinity,
+                );
+              },
+            ),
+          ),
+          
+          // Sayfa göstergeleri (opsiyonel)
+          Positioned(
+            bottom: 100,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                _backgroundImages.length,
+                (index) => Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _currentImageIndex == index 
+                        ? Colors.white 
+                        : Colors.white.withOpacity(0.5),
                   ),
                 ),
               ),
             ),
           ),
+
+          // Ana içerik
+          Positioned.fill(
+            child: Container(
+              color: Colors.black.withOpacity(0.3), // Resimlerin üzerine hafif karartma
+              child: const SafeArea(
+                child: Center(
+                ),
+              ),
+            ),
+          ),
+          
+          // Bottom Menu
           const Positioned.fill(
             child: BottomMenu(),
           ),

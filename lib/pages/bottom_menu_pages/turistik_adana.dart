@@ -74,9 +74,6 @@ class _AdanaState extends State<Adana> {
           ),
           itemBuilder: (context, index) {
             final item = items[index];
-            final String title = (items[index]['title'] ?? 'Uygulama').toString();
-            final String logo = (items[index]['logo'] ?? '').toString();
-
             return InkWell(
               onTap: () => _onItemTap(context, item),
               borderRadius: BorderRadius.circular(16),
