@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:smartcity/pages/bottom_menu_pages/aski_birimler.dart';
 import 'package:smartcity/pages/bottom_menu_pages/eczaneler.dart';
+import 'package:smartcity/pages/bottom_menu_pages/halk_ekmek_noktalari.dart';
 import 'package:smartcity/pages/bottom_menu_pages/hizmet_talepleri.dart';
 import 'package:smartcity/pages/bottom_menu_pages/ihbar_sikayet.dart';
-import 'package:smartcity/pages/bottom_menu_pages/kentkart_islemleri.dart';
+import 'package:smartcity/pages/bottom_menu_pages/metro.dart';
 import 'package:smartcity/pages/bottom_menu_pages/sehir_rehberim.dart';
 import 'package:smartcity/pages/bottom_menu_pages/turistik_adana.dart';
 import 'package:smartcity/pages/bottom_menu_pages/ulasim.dart';
@@ -45,12 +46,22 @@ class BottomMenu extends StatelessWidget {
       {
         'title': 'KENTKART İŞLEMLERİ',
         'logo': 'assets/bottom_drawer_images/kentkart_islemleri.png',
-        'page': const KentkartIslemleri(),
+        'url': 'https://m.kentkart.com/home',
+      },
+      {
+        'title': 'METRO',
+        'logo': 'assets/bottom_drawer_images/metro.png',
+        'page': const Metro(),
       },
       {
         'title': 'ECZANELER',
         'logo': 'assets/bottom_drawer_images/eczane.png',
         'page': const Eczaneler(),
+      },
+      {
+        'title': 'HALK EKMEK NOKTALARI',
+        'logo': 'assets/bottom_drawer_images/halk_ekmek.png',
+        'page': const HalkEkmekNoktalari(),
       },
       {
         'title': 'WİFİ NOKTALARI',

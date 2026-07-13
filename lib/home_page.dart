@@ -39,8 +39,7 @@ class _HOMEPAGEState extends State<HOMEPAGE> {
   void initState() {
     super.initState();
     _pageController = PageController();
-    
-    // Her 2 saniyede bir resim değiştir
+
     Future.delayed(Duration.zero, () {
       _startImageSlideshow();
     });
@@ -52,7 +51,7 @@ class _HOMEPAGEState extends State<HOMEPAGE> {
         setState(() {
           _currentImageIndex = (_currentImageIndex + 1) % _backgroundImages.length;
         });
-        _startImageSlideshow(); // Sonsuz döngü
+        _startImageSlideshow();
       }
     });
   }
@@ -119,14 +118,13 @@ class _HOMEPAGEState extends State<HOMEPAGE> {
             icon: const Icon(
               Icons.wb_twilight_rounded,
               size: 32.0,
-              color: Colors.black,
+              color: Colors.white,
             ),
           ),
         ],
       ),
       body: Stack(
         children: [
-          // Arka plan resimleri için PageView
           Positioned.fill(
             child: PageView.builder(
               controller: _pageController,
@@ -146,8 +144,6 @@ class _HOMEPAGEState extends State<HOMEPAGE> {
               },
             ),
           ),
-          
-          // Sayfa göstergeleri (opsiyonel)
           Positioned(
             bottom: 100,
             left: 0,
@@ -174,7 +170,7 @@ class _HOMEPAGEState extends State<HOMEPAGE> {
           // Ana içerik
           Positioned.fill(
             child: Container(
-              color: Colors.black.withOpacity(0.3), // Resimlerin üzerine hafif karartma
+              color: Colors.black.withValues(alpha: 0.3),
               child: const SafeArea(
                 child: Center(
                 ),

@@ -13,45 +13,45 @@ class _SehirRehberimState extends State<SehirRehberim> {
   final List<Map<String, dynamic>> items = [
     {
       'title': 'TAŞKÖPRÜ KONUKEVİ',
-      'logo': 'assets/genc_adana_logo.png',
+      'logo': 'assets/sehir_rehberim_images/taskopru.png',
       'url': 'https://taskoprukonukevi.adana.bel.tr/',
     },
     {
       'title': 'ALTINKOZA FİLM FESTİVALİ',
-      'logo': 'assets/aski_logo.png',
+      'logo': 'assets/sehir_rehberim_images/altinkoza.png',
       'url': 'https://altinkozaff.org.tr/',
     },
     {
       'title': 'RESTORAN/KONAKLAMA',
-      'logo': 'assets/pkds_logo.png',
+      'logo': 'assets/sehir_rehberim_images/restoran_konaklama.png',
     },
     {
       'title': 'SİNEMALAR/TİYATROLAR',
-      'logo': 'assets/pkds_logo.png',
+      'logo': 'assets/sehir_rehberim_images/sinemalar_tiyatrolar.png',
     },
     {
       'title': 'ALIŞVERİŞ/SPOR',
-      'logo': 'assets/aski_images/alo_185.png',
+      'logo': 'assets/sehir_rehberim_images/alisveris_spor.png',
     },
     {
       'title': 'KÜLTÜR SANAT',
-      'logo': 'assets/whatsapp.png',
+      'logo': 'assets/sehir_rehberim_images/kultur_sanat.png',
     },
     {
       'title': 'EĞİTİM/ÜNİVERSİTELER',
-      'logo': 'assets/whatsapp.png',
+      'logo': 'assets/sehir_rehberim_images/egitim.png',
     },
     {
       'title': 'NAMAZ VAKİTLERİ',
-      'logo': 'assets/whatsapp.png',
+      'logo': 'assets/sehir_rehberim_images/namaz_vakitleri.png',
     },
     {
       'title': 'BANKALAR',
-      'logo': 'assets/whatsapp.png',
+      'logo': 'assets/sehir_rehberim_images/bankalar.png',
     },
     {
       'title': 'DEVLET DAİRELERİ',
-      'logo': 'assets/whatsapp.png',
+      'logo': 'assets/sehir_rehberim_images/devlet_daireleri.png',
       'page': const DevletDaireleri(),
     },
   ];

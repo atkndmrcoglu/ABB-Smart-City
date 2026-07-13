@@ -5,7 +5,6 @@ import '../models/ulasim_model.dart';
 class UlasimService {
   final String baseUrl = "http://127.0.0.1/api/ulasim.php";
 
-  // 1. Tüm Hatları Getir - DÜZELTİLDİ
   Future<List<Hat>> getTumHatlar() async {
     final String fullUrl = '$baseUrl?action=routes';
     
@@ -17,15 +16,12 @@ class UlasimService {
       
       if (response.statusCode == 200) {
         final dynamic jsonData = json.decode(response.body);
-        
-        // Eğer gelen veri Map ise (hata mesajı veya debug içeriyorsa)
         if (jsonData is Map<String, dynamic>) {
           // Hata varsa
           if (jsonData.containsKey('error')) {
             print('API Hatası: ${jsonData['error']}');
             return [];
           }
-          // data anahtarı varsa onu kullan
           if (jsonData.containsKey('data')) {
             final List<dynamic> data = jsonData['data'];
             print('Hat Sayısı: ${data.length}');
