@@ -4,7 +4,7 @@ class Durak {
   final String id;
   final String isim;
   final LatLng koordinat;
-  List<String> hatlar; // Duraktan geçen hatlar
+  final List<String> hatlar;
 
   Durak({
     required this.id,
@@ -16,8 +16,8 @@ class Durak {
   factory Durak.fromJson(Map<String, dynamic> json) {
     final stopId = json['stop_id'];
     final stopName = json['stop_name'];
-    final stopLat = json['stop_lat'];
-    final stopLon = json['stop_lon'];
+    final stopLat = json['stop_lat'] ?? json['lat'];
+    final stopLon = json['stop_lon'] ?? json['lon']; 
     
     double lat = 0.0;
     double lon = 0.0;
@@ -33,16 +33,21 @@ class Durak {
       id: stopId?.toString() ?? '',
       isim: stopName?.toString() ?? 'Bilinmeyen Durak',
       koordinat: LatLng(lat, lon),
-      hatlar: [], // Başlangıçta boş, sonra doldurulacak
+      hatlar: const [], // Başlangıçta boş, servis katmanında doldurulacak
     );
   }
   
-  // Duraktan geçen hatları ekle
-  Durak copyWith({List<String>? hatlar}) {
+  // Duraktan geçen hatları güncellemek için copyWith metodu
+  Durak copyWith({
+    String? id,
+    String? isim,
+    LatLng? koordinat,
+    List<String>? hatlar,
+  }) {
     return Durak(
-      id: id,
-      isim: isim,
-      koordinat: koordinat,
+      id: id ?? this.id,
+      isim: isim ?? this.isim,
+      koordinat: koordinat ?? this.koordinat,
       hatlar: hatlar ?? this.hatlar,
     );
   }
@@ -70,21 +75,27 @@ class Hat {
     final shapeId = json['shape_id'];
     final tripId = json['trip_id'];
     
+    // Değerlerin null veya metinsel "null" olma durumlarını temizleyen yardımcı fonksiyon
+    String parseString(dynamic value) {
+      if (value == null || value.toString().trim().toLowerCase() == 'null') {
+        return '';
+      }
+      return value.toString().trim();
+    }
+
     return Hat(
-      routeId: routeId?.toString() ?? '',
-      routeShortName: routeShortName?.toString() ?? 'Bilinmeyen',
-      routeLongName: routeLongName?.toString() ?? 'Hat',
-      shapeId: shapeId != null && shapeId.toString() != 'null' ? shapeId.toString() : '',
-      tripId: tripId != null && tripId.toString() != 'null' ? tripId.toString() : '',
+      routeId: parseString(routeId),
+      routeShortName: parseString(routeShortName).isEmpty ? 'Bilinmeyen' : parseString(routeShortName),
+      routeLongName: parseString(routeLongName).isEmpty ? 'Hat' : parseString(routeLongName),
+      shapeId: parseString(shapeId),
+      tripId: parseString(tripId),
     );
   }
   
   bool get isValid {
     return routeId.isNotEmpty && 
            tripId.isNotEmpty && 
-           shapeId.isNotEmpty && 
-           tripId != 'null' && 
-           shapeId != 'null';
+           shapeId.isNotEmpty;
   }
 }
 
@@ -96,8 +107,9 @@ class RotaNoktasi {
   });
 
   factory RotaNoktasi.fromJson(Map<String, dynamic> json) {
-    final lat = json['shape_pt_lat'] ?? json['lat'];
-    final lon = json['shape_pt_lon'] ?? json['lon'];
+    // API'den gelebilecek farklı koordinat parametrelerine karşı esneklik sağlandı
+    final lat = json['shape_pt_lat'] ?? json['lat'] ?? json['latitude'];
+    final lon = json['shape_pt_lon'] ?? json['lon'] ?? json['longitude'];
     
     double latitude = 0.0;
     double longitude = 0.0;

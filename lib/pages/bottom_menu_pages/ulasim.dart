@@ -23,7 +23,7 @@ class _UlasimState extends State<Ulasim> {
   String _hataMesaji = '';
 
   bool _solPanelAcik = false;
-  int _aktifSekme = 0; // 0: ROUTES, 1: STOPS
+  int _aktifSekme = 0;
   List<Hat> _tumHatlar = [];
   List<Hat> _filtreliHatlar = [];
   Hat? _secilenHat;
@@ -31,8 +31,6 @@ class _UlasimState extends State<Ulasim> {
   final TextEditingController _aramaController = TextEditingController();
 
   Timer? _moveEndTimer;
-  
-  bool _haritaHareketEdiyor = false;
   LatLng? _sonMerkez;
   double? _sonZoom;
 
@@ -49,9 +47,6 @@ class _UlasimState extends State<Ulasim> {
       _mapController.mapEventStream?.listen((event) {
         if (event is MapEventMoveEnd) {
           _onMapMoveEnd(event.camera);
-        } else if (event is MapEventMoveStart) {
-          _haritaHareketEdiyor = true;
-          print('🔄 Harita hareket etmeye başladı');
         }
       });
     });
@@ -65,15 +60,8 @@ class _UlasimState extends State<Ulasim> {
   }
 
   void _onMapMoveEnd(MapCamera camera) {
-    _haritaHareketEdiyor = false;
-    
     _moveEndTimer?.cancel();
-
     _moveEndTimer = Timer(const Duration(milliseconds: 500), () {
-      print('=== HARİTA HAREKETİ DURDU (MOVEEND) ===');
-      print('📍 Yeni Merkez: ${camera.center}');
-      print('🔍 Zoom Seviyesi: ${camera.zoom}');
-      
       if (_sonMerkez != camera.center || _sonZoom != camera.zoom) {
         _sonMerkez = camera.center;
         _sonZoom = camera.zoom;
@@ -96,32 +84,21 @@ class _UlasimState extends State<Ulasim> {
       final gorunurDuraklar = _tumDuraklar.where((durak) {
         final lat = durak.koordinat.latitude;
         final lng = durak.koordinat.longitude;
-        return lat >= minLat &&
-               lat <= maxLat &&
-               lng >= minLng &&
-               lng <= maxLng;
+        return lat >= minLat && lat <= maxLat && lng >= minLng && lng <= maxLng;
       }).toList();
       
-      print('👁️ Görünür durak sayısı: ${gorunurDuraklar.length} / ${_tumDuraklar.length}');
       if (gorunurDuraklar.length < _duraklar.length && gorunurDuraklar.isNotEmpty) {
         setState(() {
           _duraklar = gorunurDuraklar;
         });
       }
-    } else if (_secilenHat != null) {
-      print('🚌 Hat seçili: ${_secilenHat!.routeShortName} - ${_duraklar.length} durak');
     }
   }
 
   void _onPositionChanged(MapCamera camera, bool hasGesture) {
-    _haritaHareketEdiyor = true;
+    if (!hasGesture) return;
     _moveEndTimer?.cancel();
     _moveEndTimer = Timer(const Duration(milliseconds: 600), () {
-      _haritaHareketEdiyor = false;
-      print('=== HARİTA HAREKETİ DURDU (POSITION CHANGED) ===');
-      print('📍 Yeni Merkez: ${camera.center}');
-      print('🔍 Zoom Seviyesi: ${camera.zoom}');
-      
       if (_sonMerkez != camera.center || _sonZoom != camera.zoom) {
         _sonMerkez = camera.center;
         _sonZoom = camera.zoom;
@@ -131,47 +108,27 @@ class _UlasimState extends State<Ulasim> {
   }
 
   Future<void> _tumDuraklariYukle() async {
-    setState(() {
-      _yukleniyor = true;
-    });
-
+    setState(() => _yukleniyor = true);
     final duraklar = await _ulasimService.getTumDuraklar();
-    print('Tüm duraklar yüklendi: ${duraklar.length}');
-
     setState(() {
       _tumDuraklar = duraklar;
       _duraklar = duraklar;
       _yukleniyor = false;
     });
-
     if (duraklar.isNotEmpty) {
-      final center = duraklar[duraklar.length ~/ 2].koordinat;
-      _mapController.move(center, 12.0);
+      _mapController.move(duraklar[duraklar.length ~/ 2].koordinat, 12.0);
     }
   }
 
   Future<void> _hatListesiniYukle() async {
     try {
       final List<Hat> hatlar = await _ulasimService.getTumHatlar();
-      print('Gelen hat sayısı: ${hatlar.length}');
-
       if (hatlar.isEmpty) {
-        setState(() {
-          _hataMesaji = 'Hiç hat bulunamadı!';
-        });
+        setState(() => _hataMesaji = 'Hiç hat bulunamadı!');
         return;
       }
 
       final List<Hat> gecerliHatlar = hatlar.where((hat) => hat.isValid).toList();
-      print('Geçerli hat sayısı: ${gecerliHatlar.length}');
-
-      if (gecerliHatlar.isEmpty) {
-        setState(() {
-          _hataMesaji = 'Geçerli hat bulunamadı!';
-        });
-        return;
-      }
-
       final Map<String, Hat> uniqueHats = {};
       for (var hat in gecerliHatlar) {
         if (!uniqueHats.containsKey(hat.routeId)) {
@@ -179,18 +136,12 @@ class _UlasimState extends State<Ulasim> {
         }
       }
 
-      final List<Hat> benzersizHatlar = uniqueHats.values.toList();
-      print('Benzersiz hat sayısı: ${benzersizHatlar.length}');
-
       setState(() {
-        _tumHatlar = benzersizHatlar;
-        _filtreliHatlar = benzersizHatlar;
+        _tumHatlar = uniqueHats.values.toList();
+        _filtreliHatlar = _tumHatlar;
       });
     } catch (e) {
-      setState(() {
-        _hataMesaji = 'Hata: $e';
-      });
-      print("Hat listesi yüklenirken hata oluştu: $e");
+      setState(() => _hataMesaji = 'Hata: $e');
     }
   }
 
@@ -212,66 +163,37 @@ class _UlasimState extends State<Ulasim> {
     });
 
     try {
-      print('=== HAT DURAKLARI YÜKLENİYOR ===');
-      print('Shape ID: $shapeId');
-      print('Trip ID: $tripId');
-
-      if (shapeId.isEmpty || tripId.isEmpty) {
-        setState(() {
-          _duraklar = _tumDuraklar;
-          _yukleniyor = false;
-          _secilenHat = null;
-          _secilenHatAdi = "Tüm Duraklar";
-        });
-        return;
+      final gelenDuraklar = await _ulasimService.getSeferDuraklari(tripId);
+      List<LatLng> koordinatListesi = [];
+      
+      try {
+        final rotalar = await _ulasimService.getRotaCizgisi(shapeId);
+        if (rotalar.isNotEmpty) {
+          koordinatListesi = rotalar.map((r) => r.koordinat).toList();
+        }
+      } catch (e) {
+        print("Rota API hatası: $e");
       }
 
-      final rotalar = await _ulasimService.getRotaCizgisi(shapeId);
-      print('Rota noktası sayısı: ${rotalar.length}');
-
-      final gelenDuraklar = await _ulasimService.getSeferDuraklari(tripId);
-      print('Gelen durak sayısı: ${gelenDuraklar.length}');
+      if (koordinatListesi.isEmpty && gelenDuraklar.isNotEmpty) {
+        koordinatListesi = gelenDuraklar.map((d) => d.koordinat).toList();
+      }
 
       setState(() {
-        _guzergahCizgisi = rotalar.map((r) => r.koordinat).toList();
+        _guzergahCizgisi = koordinatListesi;
         _duraklar = gelenDuraklar.isNotEmpty ? gelenDuraklar : _tumDuraklar;
         _yukleniyor = false;
       });
 
       if (_duraklar.isNotEmpty) {
-        final center = _duraklar[_duraklar.length ~/ 2].koordinat;
-        _mapController.move(center, 13.5);
+        _mapController.move(_duraklar[_duraklar.length ~/ 2].koordinat, 13.5);
       }
     } catch (e) {
       setState(() {
         _yukleniyor = false;
         _hataMesaji = 'Veri yükleme hatası: $e';
       });
-      print("Veri yükleme hatası: $e");
     }
-  }
-
-  void _tumDuraklariGoster() {
-    setState(() {
-      _secilenHat = null;
-      _duraklar = _tumDuraklar;
-      _guzergahCizgisi = [];
-      _secilenHatAdi = "Tüm Duraklar (${_tumDuraklar.length})";
-      _solPanelAcik = false;
-    });
-
-    if (_tumDuraklar.isNotEmpty) {
-      final center = _tumDuraklar[_tumDuraklar.length ~/ 2].koordinat;
-      _mapController.move(center, 12.0);
-    }
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('📍 ${_tumDuraklar.length} durak gösteriliyor'),
-        duration: const Duration(seconds: 2),
-        backgroundColor: Colors.green.shade700,
-      ),
-    );
   }
 
   void _hatlariFiltrele(String sorgu) {
@@ -280,10 +202,8 @@ class _UlasimState extends State<Ulasim> {
         _filtreliHatlar = _tumHatlar;
       } else {
         _filtreliHatlar = _tumHatlar.where((hat) {
-          final kisaAd = hat.routeShortName.toLowerCase();
-          final uzunAd = hat.routeLongName.toLowerCase();
-          final sorguLower = sorgu.toLowerCase();
-          return kisaAd.contains(sorguLower) || uzunAd.contains(sorguLower);
+          return hat.routeShortName.toLowerCase().contains(sorgu.toLowerCase()) ||
+                 hat.routeLongName.toLowerCase().contains(sorgu.toLowerCase());
         }).toList();
       }
     });
@@ -294,577 +214,277 @@ class _UlasimState extends State<Ulasim> {
     return Scaffold(
       body: Stack(
         children: [
-          FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              initialCenter: const LatLng(37.0, 35.3),
-              initialZoom: 12.0,
-              onPositionChanged: (camera, hasGesture) {
-                if (hasGesture) {
-                  _onPositionChanged(camera, hasGesture);
-                }
-              },
-            ),
-            children: [
-              TileLayer(
-                urlTemplate:
-                    'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-                subdomains: const ['a', 'b', 'c', 'd'],
-                userAgentPackageName: 'com.belediye.akillisehir',
-              ),
-              if (_guzergahCizgisi.isNotEmpty && _secilenHat != null)
-                PolylineLayer(
-                  polylines: [
-                    Polyline(
-                      points: _guzergahCizgisi,
-                      strokeWidth: 6.0,
-                      color: Colors.blue.shade700,
-                      borderColor: Colors.white.withOpacity(0.3),
-                      borderStrokeWidth: 2.0,
-                    ),
-                  ],
-                ),
-              if (_duraklar.isNotEmpty)
-                MarkerLayer(
-                  markers: _duraklar.map((durak) {
-                    final isSelected = _secilenHat != null &&
-                        _guzergahCizgisi.isNotEmpty &&
-                        _duraklar.contains(durak);
-                    return Marker(
-                      key: ValueKey(durak.id),
-                      point: durak.koordinat,
-                      width: isSelected ? 50 : 38,
-                      height: isSelected ? 50 : 38,
-                      child: GestureDetector(
-                        onTap: () {
-                          _showDurakDetay(durak);
-                        },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: isSelected ? Colors.blue.shade600 : Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.25),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                            border: Border.all(
-                              color: isSelected ? Colors.white : Colors.blue.shade300,
-                              width: 2.5,
-                            ),
-                          ),
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              Positioned(
-                                top: 8,
-                                child: Icon(Icons.directions_bus, size: 20, color: Colors.white),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-            ],
-          ),
-
-          // TOP BAR
-          Positioned(
-            top: 55,
-            left: 70,
-            right: 70,
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-              decoration: BoxDecoration(
-                gradient: _secilenHat == null
-                    ? LinearGradient(
-                        colors: [Colors.green.shade700, Colors.green.shade500],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      )
-                    : LinearGradient(
-                        colors: [Colors.blue.shade700, Colors.blue.shade500],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                borderRadius: BorderRadius.circular(25),
-                boxShadow: [
-                  BoxShadow(
-                    color: (_secilenHat == null ? Colors.green : Colors.blue)
-                        .shade300
-                        .withOpacity(0.4),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    _secilenHat == null ? Icons.location_on : Icons.directions_bus,
-                    color: Colors.white,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      _secilenHatAdi,
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // HATA MESAJI
-          if (_hataMesaji.isNotEmpty)
-            Positioned(
-              bottom: 100,
-              left: 20,
-              right: 20,
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade50,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.red.shade300),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.error_outline, color: Colors.red.shade700),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        _hataMesaji,
-                        style: TextStyle(color: Colors.red.shade700),
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.close, color: Colors.red.shade700, size: 18),
-                      onPressed: () => setState(() => _hataMesaji = ''),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-          // SOL PANEL
-          AnimatedPositioned(
-            duration: const Duration(milliseconds: 350),
-            curve: Curves.easeInOutCubic,
-            top: 0,
-            bottom: 0,
-            left: _solPanelAcik ? 0 : -380,
-            child: Container(
-              width: 360,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.grey.shade900,
-                    Colors.grey.shade800,
-                  ],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.5),
-                    blurRadius: 20,
-                    offset: const Offset(4, 0),
-                  ),
-                ],
-                borderRadius: const BorderRadius.only(
-                  topRight: Radius.circular(24),
-                  bottomRight: Radius.circular(24),
-                ),
-              ),
-              child: Column(
-                children: [
-                  // Panel Header
-                  Container(
-                    padding: const EdgeInsets.only(top: 55, left: 20, right: 16, bottom: 16),
-                    decoration: BoxDecoration(
-                      color: (_secilenHat == null ? Colors.green : Colors.blue)
-                          .shade700
-                          .withOpacity(0.15),
-                      borderRadius: const BorderRadius.only(
-                        topRight: Radius.circular(24),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _secilenHat != null
-                                    ? '🚌 ${_secilenHat!.routeShortName}'
-                                    : '📍 Tüm Duraklar',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                _secilenHat != null
-                                    ? _secilenHat!.routeLongName
-                                    : '${_tumDuraklar.length} durak',
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.6),
-                                  fontSize: 12,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          icon: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.1),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.close,
-                              color: Colors.white70,
-                              size: 22,
-                            ),
-                          ),
-                          onPressed: () => setState(() => _solPanelAcik = false),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Sekmeler
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          _buildSekmeButonu2("🚌 ROUTES", 0),
-                          _buildSekmeButonu2("📍 STOPS", 1),
-                        ],
-                      ),
-                    ),
-                  ),
-                  // Arama Kutusu
-                  if (_aktifSekme == 0)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.08),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: TextField(
-                          controller: _aramaController,
-                          style: const TextStyle(color: Colors.white),
-                          decoration: InputDecoration(
-                            hintText: "🔍 Hat ara...",
-                            hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 10,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  const SizedBox(height: 8),
-                  // Liste
-                  Expanded(
-                    child: _aktifSekme == 0
-                        ? _filtreliHatlar.isEmpty
-                            ? Center(
-                                child: Text(
-                                  'Hat bulunamadı',
-                                  style: TextStyle(color: Colors.white.withOpacity(0.3)),
-                                ),
-                              )
-                            : ListView.builder(
-                                padding: const EdgeInsets.symmetric(horizontal: 12),
-                                itemCount: _filtreliHatlar.length,
-                                itemBuilder: (context, index) {
-                                  final hat = _filtreliHatlar[index];
-                                  final isSelected = _secilenHat?.routeId == hat.routeId;
-                                  return Container(
-                                    margin: const EdgeInsets.only(bottom: 4),
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? Colors.blue.withOpacity(0.2)
-                                          : Colors.white.withOpacity(0.03),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: isSelected
-                                            ? Colors.blue.shade400
-                                            : Colors.white.withOpacity(0.05),
-                                      ),
-                                    ),
-                                    child: ListTile(
-                                      contentPadding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 2,
-                                      ),
-                                      leading: Container(
-                                        width: 36,
-                                        height: 36,
-                                        decoration: BoxDecoration(
-                                          color: isSelected
-                                              ? Colors.blue.shade400
-                                              : Colors.blue.withOpacity(0.2),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: Center(
-                                          child: Text(
-                                            hat.routeShortName,
-                                            style: TextStyle(
-                                              color: isSelected ? Colors.white : Colors.blue,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 11,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      title: Text(
-                                        hat.routeLongName,
-                                        style: TextStyle(
-                                          color: isSelected ? Colors.white : Colors.white70,
-                                          fontSize: 13,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      trailing: isSelected
-                                          ? const Icon(
-                                              Icons.check_circle,
-                                              color: Colors.blue,
-                                              size: 18,
-                                            )
-                                          : null,
-                                      onTap: () => _hatSec(hat),
-                                    ),
-                                  );
-                                },
-                              )
-                        : _duraklar.isEmpty
-                            ? Center(
-                                child: Text(
-                                  'Durak yok',
-                                  style: TextStyle(color: Colors.white.withOpacity(0.3)),
-                                ),
-                              )
-                            : ListView.builder(
-                                padding: const EdgeInsets.symmetric(horizontal: 12),
-                                itemCount: _duraklar.length,
-                                itemBuilder: (context, index) {
-                                  final durak = _duraklar[index];
-                                  return Container(
-                                    margin: const EdgeInsets.only(bottom: 4),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.03),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: ListTile(
-                                      contentPadding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 2,
-                                      ),
-                                      leading: Container(
-                                        width: 30,
-                                        height: 30,
-                                        decoration: BoxDecoration(
-                                          color: Colors.green.withOpacity(0.2),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: Center(
-                                          child: Text(
-                                            '${index + 1}',
-                                            style: const TextStyle(
-                                              color: Colors.green,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 11,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      title: Text(
-                                        durak.isim,
-                                        style: const TextStyle(
-                                          color: Colors.white70,
-                                          fontSize: 13,
-                                        ),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      onTap: () {
-                                        _mapController.move(durak.koordinat, 16.0);
-                                        setState(() => _solPanelAcik = false);
-                                        _showDurakDetay(durak);
-                                      },
-                                    ),
-                                  );
-                                },
-                              ),
-                  ),
-                  const SizedBox(height: 8),
-                ],
-              ),
-            ),
-          ),
-
-          // SOL BUTONLAR
-          Positioned(
-            top: 120,
-            left: 12,
-            child: Column(
-              children: [
-                _buildFloatingActionButton(
-                  Icons.menu_rounded,
-                  () {
-                    setState(() {
-                      _solPanelAcik = !_solPanelAcik;
-                      if (_solPanelAcik) _aktifSekme = 0;
-                    });
-                  },
-                  Colors.blue.shade600,
-                ),
-                const SizedBox(height: 10),
-                _buildFloatingActionButton(
-                  Icons.location_on_rounded,
-                  () {
-                    if (_duraklar.isNotEmpty) {
-                      final center = _duraklar[_duraklar.length ~/ 2].koordinat;
-                      _mapController.move(center, 14.0);
-                    }
-                  },
-                  Colors.green.shade600,
-                ),
-                const SizedBox(height: 10),
-                _buildFloatingActionButton(
-                  Icons.cleaning_services_rounded,
-                  _tumDuraklariGoster,
-                  Colors.orange.shade600,
-                ),
-              ],
-            ),
-          ),
-
-          // ZOOM
-          Positioned(
-            bottom: 40,
-            right: 16,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.15),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.add, color: Colors.black87),
-                    onPressed: () {
-                      final center = _mapController.camera.center;
-                      final zoom = _mapController.camera.zoom;
-                      _mapController.move(center, zoom + 0.5);
-                    },
-                    splashRadius: 20,
-                  ),
-                  Container(
-                    width: 30,
-                    height: 1,
-                    color: Colors.grey.shade300,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.remove, color: Colors.black87),
-                    onPressed: () {
-                      final center = _mapController.camera.center;
-                      final zoom = _mapController.camera.zoom;
-                      _mapController.move(center, zoom - 0.5);
-                    },
-                    splashRadius: 20,
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // YÜKLEME
-          if (_yukleniyor)
-            Container(
-              color: Colors.black.withOpacity(0.4),
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.all(32),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        blurRadius: 20,
-                      ),
-                    ],
-                  ),
-                  child: const Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CircularProgressIndicator(color: Colors.blue),
-                      SizedBox(height: 16),
-                      Text('Yükleniyor...'),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+          _buildFlutterMap(),
+          _buildTopBar(),
+          if (_hataMesaji.isNotEmpty) _buildHataMesaji(),
+          _buildSolPanel(),
+          _buildMenuButonu(),
+          _buildZoomButonlari(),
+          if (_yukleniyor) _buildYuklemeEkrani(),
         ],
       ),
     );
   }
 
-  Widget _buildSekmeButonu2(String metin, int indeks) {
+  Widget _buildFlutterMap() {
+    return FlutterMap(
+      mapController: _mapController,
+      options: MapOptions(
+        initialCenter: const LatLng(37.0, 35.3),
+        initialZoom: 12.0,
+        onPositionChanged: (camera, hasGesture) {
+          if (hasGesture) _onPositionChanged(camera, hasGesture);
+        },
+      ),
+      children: [
+        TileLayer(
+          urlTemplate: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+          subdomains: const ['a', 'b', 'c', 'd'],
+          userAgentPackageName: 'com.belediye.akillisehir',
+        ),
+        if (_guzergahCizgisi.isNotEmpty) _buildPolylineLayer(),
+        if (_duraklar.isNotEmpty) _buildMarkerLayer(),
+      ],
+    );
+  }
+
+  PolylineLayer _buildPolylineLayer() {
+    return PolylineLayer(
+      polylines: [
+        Polyline(
+          points: _guzergahCizgisi,
+          strokeWidth: 8.0,
+          color: Colors.blue.shade900.withOpacity(0.35),
+        ),
+        Polyline(
+          points: _guzergahCizgisi,
+          strokeWidth: 5.0,
+          color: Colors.blue.shade600,
+          borderColor: Colors.white,
+          borderStrokeWidth: 1.5,
+        ),
+      ],
+    );
+  }
+
+  MarkerLayer _buildMarkerLayer() {
+    return MarkerLayer(
+      markers: _duraklar.map((durak) {
+        final isSelected = _secilenHat != null &&
+            _guzergahCizgisi.isNotEmpty &&
+            _duraklar.contains(durak);
+        return Marker(
+          key: ValueKey(durak.id),
+          point: durak.koordinat,
+          width: isSelected ? 50 : 38,
+          height: isSelected ? 50 : 38,
+          child: GestureDetector(
+            onTap: () => _showDurakDetay(durak),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: isSelected ? Colors.blue.shade600 : Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.25),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+                border: Border.all(
+                  color: isSelected ? Colors.white : Colors.blue.shade300,
+                  width: 2.5,
+                ),
+              ),
+              child: Icon(
+                Icons.directions_bus,
+                size: isSelected ? 22 : 20,
+                color: isSelected ? Colors.white : Colors.blue.shade600,
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildTopBar() {
+    return Positioned(
+      top: 55,
+      left: 70,
+      right: 70,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+        decoration: BoxDecoration(
+          gradient: _secilenHat == null
+              ? LinearGradient(
+                  colors: [Colors.green.shade700, Colors.green.shade500],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+              : LinearGradient(
+                  colors: [Colors.blue.shade700, Colors.blue.shade500],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+          borderRadius: BorderRadius.circular(25),
+          boxShadow: [
+            BoxShadow(
+              color: (_secilenHat == null ? Colors.green : Colors.blue)
+                  .shade300
+                  .withOpacity(0.4),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              _secilenHat == null ? Icons.location_on : Icons.directions_bus,
+              color: Colors.white,
+              size: 16,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                _secilenHatAdi,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHataMesaji() {
+    return Positioned(
+      bottom: 100,
+      left: 20,
+      right: 20,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.red.shade50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.red.shade300),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.error_outline, color: Colors.red.shade700),
+            const SizedBox(width: 10),
+            Expanded(child: Text(_hataMesaji, style: TextStyle(color: Colors.red.shade700))),
+            IconButton(
+              icon: Icon(Icons.close, color: Colors.red.shade700, size: 18),
+              onPressed: () => setState(() => _hataMesaji = ''),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSolPanel() {
+    return AnimatedPositioned(
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeInOutCubic,
+      top: 0,
+      bottom: 0,
+      left: _solPanelAcik ? 0 : -380,
+      child: Container(
+        width: 360,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.grey.shade900, Colors.grey.shade800],
+          ),
+          borderRadius: const BorderRadius.only(
+            topRight: Radius.circular(24),
+            bottomRight: Radius.circular(24),
+          ),
+        ),
+        child: Column(
+          children: [
+            _buildPanelHeader(),
+            _buildSekmeButonlari(),
+            if (_aktifSekme == 0) _buildAramaKutusu(),
+            const SizedBox(height: 8),
+            Expanded(
+              child: _aktifSekme == 0 ? _buildHatListesi() : _buildDurakListesi(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPanelHeader() {
+    return Container(
+      padding: const EdgeInsets.only(top: 55, left: 20, right: 16, bottom: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _secilenHat != null ? '🚌 ${_secilenHat!.routeShortName}' : '📍 Tüm Duraklar',
+                  style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _secilenHat != null ? _secilenHat!.routeLongName : '${_tumDuraklar.length} durak',
+                  style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 12),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, color: Colors.white70),
+            onPressed: () => setState(() => _solPanelAcik = false),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSekmeButonlari() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            _buildSekmeButonu("🚌 ROUTES", 0),
+            _buildSekmeButonu("📍 STOPS", 1),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSekmeButonu(String metin, int indeks) {
     bool seciliMi = _aktifSekme == indeks;
     return Expanded(
       child: InkWell(
@@ -890,260 +510,785 @@ class _UlasimState extends State<Ulasim> {
     );
   }
 
-  Widget _buildFloatingActionButton(IconData icon, VoidCallback onTap, Color color) {
-    return Container(
-      width: 48,
-      height: 48,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.12),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
+  Widget _buildAramaKutusu() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: TextField(
+          controller: _aramaController,
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            hintText: "🔍 Hat ara...",
+            hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+            border: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           ),
-        ],
-      ),
-      child: IconButton(
-        icon: Icon(icon, color: color, size: 24),
-        onPressed: onTap,
-        padding: EdgeInsets.zero,
-        splashRadius: 24,
+        ),
       ),
     );
   }
 
-  // DURAK DETAY BOTTOM SHEET
+  Widget _buildHatListesi() {
+    if (_filtreliHatlar.isEmpty) {
+      return Center(child: Text('Hat bulunamadı', style: TextStyle(color: Colors.white.withOpacity(0.3))));
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      itemCount: _filtreliHatlar.length,
+      itemBuilder: (context, index) {
+        final hat = _filtreliHatlar[index];
+        final isSelected = _secilenHat?.routeId == hat.routeId;
+        return Container(
+          margin: const EdgeInsets.only(bottom: 4),
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.blue.withOpacity(0.2) : Colors.white.withOpacity(0.03),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: isSelected ? Colors.blue : Colors.blue.withOpacity(0.2),
+              child: Text(
+                hat.routeShortName,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : Colors.blue,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            title: Text(
+              hat.routeLongName,
+              style: const TextStyle(color: Colors.white70, fontSize: 13),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            onTap: () => _hatSec(hat),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDurakListesi() {
+    if (_duraklar.isEmpty) {
+      return Center(child: Text('Durak yok', style: TextStyle(color: Colors.white.withOpacity(0.3))));
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      itemCount: _duraklar.length,
+      itemBuilder: (context, index) {
+        final durak = _duraklar[index];
+        return Container(
+          margin: const EdgeInsets.only(bottom: 4),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.03),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: Colors.green.withOpacity(0.2),
+              child: Text(
+                '${index + 1}',
+                style: const TextStyle(color: Colors.green, fontSize: 11, fontWeight: FontWeight.bold),
+              ),
+            ),
+            title: Text(
+              durak.isim,
+              style: const TextStyle(color: Colors.white70, fontSize: 13),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            onTap: () {
+              _mapController.move(durak.koordinat, 16.0);
+              setState(() => _solPanelAcik = false);
+              _showDurakDetay(durak);
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMenuButonu() {
+    return AnimatedPositioned(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+      top: 120,
+      left: _solPanelAcik ? -60 : 12,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 250),
+        opacity: _solPanelAcik ? 0.0 : 1.0,
+        child: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 8, offset: const Offset(0, 3)),
+            ],
+          ),
+          child: IconButton(
+            icon: Icon(Icons.menu_rounded, color: Colors.blue.shade600, size: 24),
+            onPressed: () {
+              setState(() {
+                _solPanelAcik = !_solPanelAcik;
+                if (_solPanelAcik) _aktifSekme = 0;
+              });
+            },
+            padding: EdgeInsets.zero,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildZoomButonlari() {
+    return Positioned(
+      bottom: 40,
+      right: 16,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 12, offset: const Offset(0, 4)),
+          ],
+        ),
+        child: Column(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.add, color: Colors.black87),
+              onPressed: () {
+                final center = _mapController.camera.center;
+                final zoom = _mapController.camera.zoom;
+                _mapController.move(center, zoom + 0.5);
+              },
+            ),
+            Container(width: 30, height: 1, color: Colors.grey.shade300),
+            IconButton(
+              icon: const Icon(Icons.remove, color: Colors.black87),
+              onPressed: () {
+                final center = _mapController.camera.center;
+                final zoom = _mapController.camera.zoom;
+                _mapController.move(center, zoom - 0.5);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildYuklemeEkrani() {
+    return Container(
+      color: Colors.black.withOpacity(0.4),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: const Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(color: Colors.blue),
+              SizedBox(height: 16),
+              Text('Yükleniyor...'),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ==================== DURAK DETAY ====================
+
   void _showDurakDetay(Durak durak) async {
+    setState(() => _yukleniyor = true);
+
     final hatlar = await _ulasimService.getDurakHatlar(durak.id);
-    
+    if (!mounted) return;
+
+    setState(() => _yukleniyor = false);
+
+    if (hatlar.isEmpty) {
+      _showHataMesaji('Bu durakta aktif hat bulunmamaktadır.');
+      return;
+    }
+
+    final List<Map<String, dynamic>> yaklasanAraclar = [];
+
+    for (var hatNo in hatlar) {
+      try {
+        final hatDetay = await _ulasimService.getHatDetay(hatNo);
+        final aracBilgisi = await _ulasimService.getYaklasanArac(durak.id, hatNo);
+        final kalkisSaatleri = await _ulasimService.getKalkisSaatleri(hatNo);
+
+        if (hatNo.isNotEmpty) {
+          yaklasanAraclar.add({
+            "hatNo": hatNo,
+            "dakika": aracBilgisi?['dakika'] ?? "Bilinmiyor",
+            "mesafe": aracBilgisi?['mesafe'] ?? "Bilinmiyor",
+            "sonDurak": hatDetay?['sonDurak'] ?? "Bilinmiyor",
+            "guzergah": hatDetay?['guzergah'] ?? "Bilinmiyor",
+            "kalkisSaatleri": kalkisSaatleri ?? [],
+          });
+        }
+      } catch (e) {
+        print('Hat bilgisi alınamadı ($hatNo): $e');
+      }
+    }
+
+    if (yaklasanAraclar.isEmpty) {
+      _showHataMesaji('Hat bilgileri yüklenirken bir hata oluştu.');
+      return;
+    }
+
+    int detaySekmesi = 0;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.4,
-        minChildSize: 0.25,
-        maxChildSize: 0.6,
-        builder: (context, scrollController) {
-          return Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 20,
-                  offset: const Offset(0, -4),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setPanelState) {
+          return DraggableScrollableSheet(
+            initialChildSize: 0.55,
+            minChildSize: 0.4,
+            maxChildSize: 0.9,
+            builder: (context, scrollController) {
+              return Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
                 ),
-              ],
-            ),
-            child: Column(
-              children: [
-                Container(
-                  margin: const EdgeInsets.only(top: 12),
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.directions_bus_rounded,
-                          color: Colors.blue.shade700,
-                          size: 28,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              durak.isim,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            Text(
-                              '📍 ${durak.koordinat.latitude.toStringAsFixed(6)}, ${durak.koordinat.longitude.toStringAsFixed(6)}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                
-                const SizedBox(height: 16),
-                const Divider(height: 1),
-                
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '🚌 Bu Duraktan Geçen Hatlar',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade800,
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '${hatlar.length} hat',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue.shade700,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                
-                Expanded(
-                  child: hatlar.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              // DÜZELTİLDİ: directions_bus_off_rounded yerine directions_bus_rounded kullanıldı
-                              Icon(
-                                Icons.directions_bus_rounded,
-                                size: 48,
-                                color: Colors.grey.shade400,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Bu duraktan geçen hat yok',
-                                style: TextStyle(
-                                  color: Colors.grey.shade500,
-                                  fontSize: 14,
+                child: Column(
+                  children: [
+                    _buildDetayCubugu(),
+                    _buildDetayHeader(durak),
+                    const Divider(height: 1),
+                    
+                    // Sekmeler Doğrudan StatefulBuilder İçinde Güncellenebilir Hale Getirildi
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          GestureDetector(
+                            onTap: () => setPanelState(() => detaySekmesi = 0),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: detaySekmesi == 0 ? Colors.green.shade500 : Colors.transparent,
+                                    width: 3.0,
+                                  ),
                                 ),
                               ),
-                            ],
-                          ),
-                        )
-                      : Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: GridView.builder(
-                            controller: scrollController,
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 4,
-                              crossAxisSpacing: 8,
-                              mainAxisSpacing: 8,
-                              childAspectRatio: 1,
+                              child: Row(
+                                children: [
+                                  Text(
+                                    "Araçlar",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: detaySekmesi == 0 ? Colors.black87 : Colors.grey.shade500,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade200,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Text(
+                                      "${yaklasanAraclar.length}",
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            itemCount: hatlar.length,
-                            itemBuilder: (context, index) {
-                              final hatNo = hatlar[index];
-                              return _buildHatKareWidget(hatNo);
-                            },
                           ),
-                        ),
+                          const SizedBox(width: 16),
+                          GestureDetector(
+                            onTap: () => setPanelState(() => detaySekmesi = 1),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: detaySekmesi == 1 ? Colors.green.shade500 : Colors.transparent,
+                                    width: 3.0,
+                                  ),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    "Hatlar",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: detaySekmesi == 1 ? Colors.black87 : Colors.grey.shade500,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade200,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Text(
+                                      "${yaklasanAraclar.length}",
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    Expanded(
+                      child: detaySekmesi == 0
+                          ? _buildAraclarListesi(yaklasanAraclar, scrollController)
+                          : _buildHatlarListesi(yaklasanAraclar, scrollController),
+                    ),
+                  ],
                 ),
-                
-                const SizedBox(height: 16),
-              ],
-            ),
+              );
+            },
           );
         },
       ),
     );
   }
 
-  Widget _buildHatKareWidget(String hatNo) {
-    final colors = [
-      Colors.blue,
-      Colors.green,
-      Colors.orange,
-      Colors.purple,
-      Colors.red,
-      Colors.teal,
-      Colors.pink,
-      Colors.indigo,
-      Colors.amber,
-      Colors.cyan,
-    ];
-    
-    final int? hatNumber = int.tryParse(hatNo);
-    final colorIndex = hatNumber != null ? hatNumber.hashCode.abs() % colors.length : 0;
-    final color = colors[colorIndex];
-    
-    return GestureDetector(
-      onTap: () {
-        final selectedHat = _tumHatlar.firstWhere(
-          (h) => h.routeShortName == hatNo,
-          orElse: () => _tumHatlar.first,
-        );
-        _hatSec(selectedHat);
-        Navigator.pop(context);
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              color.withOpacity(0.7),
-              color.withOpacity(0.3),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: color.withOpacity(0.3),
-            width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.2),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Center(
-          child: Text(
-            hatNo,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-        ),
+  Widget _buildDetayCubugu() {
+    return Container(
+      margin: const EdgeInsets.only(top: 12, bottom: 8),
+      width: 45,
+      height: 5,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade300,
+        borderRadius: BorderRadius.circular(3),
       ),
     );
   }
+
+  Widget _buildDetayHeader(Durak durak) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                durak.id.toString().padLeft(3, '0'),
+                style: TextStyle(
+                  color: Colors.blue.shade800,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  durak.isim.toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  "Durak No: ${durak.id}",
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, color: Colors.black54),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAraclarListesi(List<Map<String, dynamic>> yaklasanAraclar, ScrollController controller) {
+    if (yaklasanAraclar.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.directions_bus, size: 48, color: Colors.grey),
+              SizedBox(height: 12),
+              Text("Yaklaşan araç bulunmamaktadır."),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      controller: controller,
+      padding: const EdgeInsets.all(16),
+      itemCount: yaklasanAraclar.length,
+      itemBuilder: (context, index) {
+        final arac = yaklasanAraclar[index];
+        final saatler = arac['kalkisSaatleri'] as List<String>;
+        
+        return GestureDetector(
+          onTap: () {
+            if (saatler.isNotEmpty) {
+              _showSaatlerDetay(arac['hatNo'], saatler);
+            }
+          },
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.grey.shade100, width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.02),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade100,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        arac['hatNo'],
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.red,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Icon(Icons.access_time, size: 16, color: Colors.grey.shade600),
+                        const SizedBox(width: 4),
+                        Text(
+                          arac['dakika'] != "Bilinmiyor" ? "${arac['dakika']} dk" : "--",
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Icon(Icons.directions_bus_outlined, size: 16, color: Colors.grey.shade600),
+                        const SizedBox(width: 4),
+                        Text(
+                          arac['mesafe'] != "Bilinmiyor" ? "${arac['mesafe']} km" : "--",
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Icon(Icons.flag_outlined, size: 16, color: Colors.grey.shade500),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        arac['sonDurak'],
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.alt_route, size: 16, color: Colors.grey.shade500),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        arac['guzergah'],
+                        style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildHatlarListesi(List<Map<String, dynamic>> yaklasanAraclar, ScrollController controller) {
+    if (yaklasanAraclar.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.route, size: 48, color: Colors.grey),
+              SizedBox(height: 12),
+              Text("Hat bulunmamaktadır."),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      controller: controller,
+      padding: const EdgeInsets.all(16),
+      itemCount: yaklasanAraclar.length,
+      itemBuilder: (context, index) {
+        final arac = yaklasanAraclar[index];
+        final saatler = arac['kalkisSaatleri'] as List<String>;
+        
+        return GestureDetector(
+          onTap: () {
+            if (saatler.isNotEmpty) {
+              _showSaatlerDetay(arac['hatNo'], saatler);
+            }
+          },
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.grey.shade100, width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.02),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade100,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    arac['hatNo'],
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red,
+                      fontSize: 15,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Icon(Icons.alt_route, size: 14, color: Colors.grey.shade400),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          arac['guzergah'],
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                            fontSize: 12,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.black38),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showHataMesaji(String mesaj) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Bilgi'),
+        content: Text(mesaj),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Tamam'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSaatlerDetay(String hatNo, List<String> saatler) {
+    final DateTime simdi = DateTime.now();
+    final String suAnkiSaat = "${simdi.hour.toString().padLeft(2, '0')}:${simdi.minute.toString().padLeft(2, '0')}";
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "🚌 $hatNo Sefer Saatleri",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  Text(
+                    "Cihaz Saati: $suAnkiSaat",
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              const Divider(),
+              const SizedBox(height: 8),
+              const Text(
+                "Günlük Planlanmış Kalkış Saatleri:",
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black54,
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 180,
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                    childAspectRatio: 2.2,
+                  ),
+                  itemCount: saatler.length,
+                  itemBuilder: (context, index) {
+                    final saat = saatler[index];
+                    final isPassed = saat.compareTo(suAnkiSaat) < 0;
+
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: isPassed ? Colors.grey.shade100 : Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: isPassed ? Colors.grey.shade300 : Colors.blue.shade200,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          saat,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: isPassed ? Colors.grey.shade400 : Colors.blue.shade800,
+                            decoration: isPassed ? TextDecoration.lineThrough : TextDecoration.none,
+              ),
+            ),
+          ),
+        );
+      },
+    ),
+  ),
+  const SizedBox(height: 12),
+],
+),
+);
+},
+);
+}
 }
