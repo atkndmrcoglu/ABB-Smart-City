@@ -204,7 +204,7 @@ class _MetroState extends State<Metro> {
                     Polyline(
                       points: hatRotasi,
                       strokeWidth: 5.0,
-                      color: Colors.blue.shade600.withOpacity(0.75),
+                      color: Colors.blue.shade600.withValues(alpha:0.75),
                       borderColor: Colors.blue.shade900,
                       borderStrokeWidth: 1.5,
                     ),
@@ -312,7 +312,7 @@ class _MetroState extends State<Metro> {
                 children: [
                   Container(
                     padding: const EdgeInsets.only(top: 55, left: 20, right: 16, bottom: 16),
-                    color: Colors.blue.shade900.withOpacity(0.3),
+                    color: Colors.blue.shade900.withValues(alpha:0.3),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -335,7 +335,7 @@ class _MetroState extends State<Metro> {
                         hintStyle: const TextStyle(color: Colors.white30),
                         prefixIcon: const Icon(Icons.search, color: Colors.white54),
                         filled: true,
-                        fillColor: Colors.white.withOpacity(0.05),
+                        fillColor: Colors.white.withValues(alpha:0.05),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                       ),
                     ),
@@ -558,7 +558,7 @@ class _MetroState extends State<Metro> {
                                 trailing: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: isNext ? Colors.green.withOpacity(0.1) : Colors.blue.shade50,
+                                    color: isNext ? Colors.green.withValues(alpha:0.1) : Colors.blue.shade50,
                                     borderRadius: BorderRadius.circular(8)
                                   ),
                                   child: Text(

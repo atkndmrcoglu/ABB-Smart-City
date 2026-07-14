@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:smartcity/widgets/side_menu.dart';
 import 'package:smartcity/widgets/bottom_menu.dart'; 
@@ -160,7 +161,7 @@ class _HOMEPAGEState extends State<HOMEPAGE> {
                     shape: BoxShape.circle,
                     color: _currentImageIndex == index 
                         ? Colors.white 
-                        : Colors.white.withOpacity(0.5),
+                        : Colors.white.withValues(alpha:0.5),
                   ),
                 ),
               ),

@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/wifi_noktasi_model.dart'; // Model adını buna göre güncelleyebilirsin

@@ -220,7 +220,7 @@ class _HalkEkmekNoktalariState extends State<HalkEkmekNoktalari> {
           // Arka planda veriler yüklenirken haritanın üzerinde dönen hafif karartmalı loading ekranı
           if (_yukleniyor)
             Container(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha:0.1),
               child: const Center(
                 child: CircularProgressIndicator(),
               ),
