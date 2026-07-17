@@ -2,18 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-class KartIcerikDetay {
-  final String rozetMetni;
-  final IconData anahtarIkon;
-  final String anahtarVeri;
-
-  KartIcerikDetay({
-    required this.rozetMetni,
-    required this.anahtarIkon,
-    required this.anahtarVeri,
-  });
-}
+import 'package:smartcity/models/sehir_rehberim/kultur_sanat_model.dart';
+import 'package:smartcity/apiler/sehir_rehberim_apiler/kultur_sanat_api.dart';
 
 class KulturSanat extends StatefulWidget {
   const KulturSanat({super.key});
@@ -24,97 +14,16 @@ class KulturSanat extends StatefulWidget {
 
 class _KulturSanatState extends State<KulturSanat> {
   final MapController _mapController = MapController();
+  final KulturSanatApi _apiService = KulturSanatApi();
   final LatLng adanaMerkez = const LatLng(36.9931, 35.3256);
-  final List<Map<String, dynamic>> benimYerlerim = [
-  {
-    'isim': 'Abidin Dino Sanat Parkı',
-    'lat': 37.249230,
-    'lon': 35.895470,
-    'altBaslik': 'Kozan, Adana',
-    'aciklama': 'Antik dönemin en büyük metropollerinden biri olan Anavarza, devasa surları, zafer takı ve dünyanın ilk çift şeritli sütunlu caddesi ile ünlüdür.',
-    'detaylar': [
-      KartIcerikDetay(rozetMetni: 'Tarih', anahtarIkon: Icons.history, anahtarVeri: 'Roma Dönemi'),
-      KartIcerikDetay(rozetMetni: 'Giriş', anahtarIkon: Icons.confirmation_number_outlined, anahtarVeri: 'Müzekart'),
-    ]
-  },
-  {
-    'isim': 'Çukurova Devlet Senfoni Orkestrası',
-    'lat': 38.332731,
-    'lon': 36.325306,
-    'altBaslik': 'Tufanbeyli, Adana',
-    'aciklama': 'Kappadokia bölgesinin önemli dini merkezlerinden biri olan Comana Antik Kenti kalıntılarını barındıran bölge, açık hava müzesi niteliğindedir.',
-    'detaylar': [
-      KartIcerikDetay(rozetMetni: 'Tür', anahtarIkon: Icons.account_balance, anahtarVeri: 'Antik Kent'),
-      KartIcerikDetay(rozetMetni: 'Giriş', anahtarIkon: Icons.lock_open, anahtarVeri: 'Ücretsiz'),
-    ]
-  },
-  {
-    'isim': '75. Yıl Sanat Galerisi',
-    'lat': 36.957596,
-    'lon': 35.623851,
-    'altBaslik': 'Yüreğir, Adana',
-    'aciklama': 'İpek Yolu üzerinde kurulan antik kent, Lokman Hekim\'in ölümsüzlük iksirini üzerinden düşürdüğü Misis Köprüsü ve eşsiz zemin mozaikleriyle tanınır.',
-    'detaylar': [
-      KartIcerikDetay(rozetMetni: 'Mozaik', anahtarIkon: Icons.extension, anahtarVeri: 'Müze Mevcut'),
-      KartIcerikDetay(rozetMetni: 'Giriş', anahtarIkon: Icons.lock_open, anahtarVeri: 'Ücretsiz'),
-    ]
-  },
-  {
-    'isim': 'Adana Arkeoloji Müzesi',
-    'lat': 36.545854,
-    'lon': 35.347095,
-    'altBaslik': 'Karataş, Adana',
-    'aciklama': 'Mallos Antik Kenti\'nin dini merkezi olan Magarsus, Akdeniz\'e tam cepheden bakan muazzam bir antik tiyatroya ve Athena Tapınağı kalıntılarına sahiptir.',
-    'detaylar': [
-      KartIcerikDetay(rozetMetni: 'Manzara', anahtarIkon: Icons.waves, anahtarVeri: 'Deniz Kenarı'),
-      KartIcerikDetay(rozetMetni: 'Yapı', anahtarIkon: Icons.theater_comedy, anahtarVeri: 'Antik Tiyatro'),
-    ]
-  },
-  {
-    'isim': 'Adana İl Halk Kütüphanesi',
-    'lat': 36.767179,
-    'lon': 35.791830,
-    'altBaslik': 'Yumurtalık, Adana',
-    'aciklama': 'Orta Çağ\'da Kilikya\'nın en önemli liman kentlerinden biri olan Yumurtalık\'ta yer alan kale, hem kara hem de deniz savunması amacıyla inşa edilmiştir.',
-    'detaylar': [
-      KartIcerikDetay(rozetMetni: 'Yapı', anahtarIkon: Icons.fort, anahtarVeri: 'Liman Kalesi'),
-      KartIcerikDetay(rozetMetni: 'Manzara', anahtarIkon: Icons.wb_sunny_outlined, anahtarVeri: 'Sahil Şeridi'),
-    ]
-  },
-  {
-    'isim': 'Hacı Ömer Sabancı Kültür Merkezi',
-    'lat': 37.467425,
-    'lon': 35.461922,
-    'altBaslik': 'Aladağ, Adana',
-    'aciklama': 'Bizans dönemine ait yoğun kalıntıların bulunduğu Akören, özellikle ayakta kalmayı başarmış tarihi kiliseleri ve antik taş evleri ile dikkat çeker.',
-    'detaylar': [
-      KartIcerikDetay(rozetMetni: 'Dönem', anahtarIkon: Icons.church, anahtarVeri: 'Bizans'),
-      KartIcerikDetay(rozetMetni: 'Giriş', anahtarIkon: Icons.lock_open, anahtarVeri: 'Ücretsiz'),
-    ]
-  },
-  {
-    'isim': 'Misis Mozaik Müzesi',
-    'lat': 37.003879,
-    'lon': 35.745788,
-    'altBaslik': 'Ceyhan, Adana',
-    'aciklama': 'Sirkeli Höyük\'te bulunan bu kabartma, Hitit Kralı 2. Muvattali\'ye aittir ve Anadolu\'daki tarihlenebilen en eski Hitit kaya kabartmalarından biridir.',
-    'detaylar': [
-      KartIcerikDetay(rozetMetni: 'Uygarlık', anahtarIkon: Icons.gavel, anahtarVeri: 'Hitit Dönemi'),
-      KartIcerikDetay(rozetMetni: 'Eser', anahtarIkon: Icons.image_search, anahtarVeri: 'Kaya Oyma'),
-    ]
-  },
-  {
-    'isim': 'Tatarlı Höyük',
-    'lat': 37.123000,
-    'lon': 36.050790,
-    'altBaslik': 'Ceyhan, Adana',
-    'aciklama': 'Kilikya bölgesinin en büyük höyüklerinden biri olan Tatarlı, Hitit döneminin kutsal şehri Lawazantiya ile özdeşleştirilen çok önemli bir kazı alanıdır.',
-    'detaylar': [
-      KartIcerikDetay(rozetMetni: 'Kazı', anahtarIkon: Icons.landscape, anahtarVeri: 'Aktif Höyük'),
-      KartIcerikDetay(rozetMetni: 'Önem', anahtarIkon: Icons.auto_awesome, anahtarVeri: 'Kutsal Şehir'),
-    ]
-  },
-];
+  
+  late Future<List<KulturSanatModel>> _futureYerler;
+
+  @override
+  void initState() {
+    super.initState();
+    _futureYerler = _apiService.fetchKulturSanatYerleri();
+  }
 
   void _haritayiOdakla(double lat, double lon) {
     _mapController.move(LatLng(lat, lon), 13.0);
@@ -145,63 +54,101 @@ class _KulturSanatState extends State<KulturSanat> {
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Tarihi Turistik Yerler', style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Kültür Sanat', 
+          style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.bold)
+        ),
         centerTitle: true,
       ),
-      body: Stack(
-        children: [
-          FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(initialCenter: adanaMerkez, initialZoom: 9.5),
-            children: [
-              TileLayer(
-                urlTemplate: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-                subdomains: const ['a', 'b', 'c', 'd'],
-                userAgentPackageName: 'com.belediye.akillisehir',
+      body: FutureBuilder<List<KulturSanatModel>>(
+        future: _futureYerler,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator(color: Colors.blue));
+          }
+
+          if (snapshot.hasError || !snapshot.hasData) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                  const SizedBox(height: 16),
+                  const Text('Veriler yüklenirken bir hata oluştu.'),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _futureYerler = _apiService.fetchKulturSanatYerleri();
+                      });
+                    },
+                    child: const Text('Tekrar Dene'),
+                  )
+                ],
               ),
-              MarkerLayer(
-                markers: benimYerlerim.map((yer) {
-                  return Marker(
-                    point: LatLng(yer['lat'], yer['lon']),
-                    width: 45,
-                    height: 45,
-                    child: GestureDetector(
-                      onTap: () => _haritayiOdakla(yer['lat'], yer['lon']),
-                      child: const Icon(Icons.location_on, color: Colors.red, size: 40),
-                    ),
-                  );
-                }).toList(),
+            );
+          }
+
+          final listem = snapshot.data!;
+
+          if (listem.isEmpty) {
+            return const Center(child: Text("Gösterilecek veri bulunamadı."));
+          }
+
+          return Stack(
+            children: [
+              FlutterMap(
+                mapController: _mapController,
+                options: MapOptions(initialCenter: adanaMerkez, initialZoom: 9.5),
+                children: [
+                  TileLayer(
+                    urlTemplate: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+                    subdomains: const ['a', 'b', 'c', 'd'],
+                    userAgentPackageName: 'com.belediye.akillisehir',
+                  ),
+                  MarkerLayer(
+                    markers: listem.map((yer) {
+                      return Marker(
+                        point: LatLng(yer.lat, yer.lon),
+                        width: 45,
+                        height: 45,
+                        child: GestureDetector(
+                          onTap: () => _haritayiOdakla(yer.lat, yer.lon),
+                          child: const Icon(Icons.location_on, color: Colors.red, size: 40),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+              Positioned(
+                bottom: 20,
+                left: 0,
+                right: 0,
+                child: SizedBox(
+                  height: 270,
+                  child: PageView.builder(
+                    controller: PageController(viewportFraction: 0.88),
+                    itemCount: listem.length,
+                    onPageChanged: (index) {
+                      final yer = listem[index];
+                      _haritayiOdakla(yer.lat, yer.lon);
+                    },
+                    itemBuilder: (context, index) {
+                      final yer = listem[index];
+                      return _buildGenelBilgiKarti(yer);
+                    },
+                  ),
+                ),
               ),
             ],
-          ),
-          Positioned(
-            bottom: 20,
-            left: 0,
-            right: 0,
-            child: SizedBox(
-              height: 270,
-              child: PageView.builder(
-                controller: PageController(viewportFraction: 0.88),
-                itemCount: benimYerlerim.length,
-                onPageChanged: (index) {
-                  final yer = benimYerlerim[index];
-                  _haritayiOdakla(yer['lat'], yer['lon']);
-                },
-                itemBuilder: (context, index) {
-                  final yer = benimYerlerim[index];
-                  return _buildGenelBilgiKarti(yer);
-                },
-              ),
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildGenelBilgiKarti(Map<String, dynamic> data) {
-    final List<KartIcerikDetay> detaylar = data['detaylar'] ?? [];
-
+  Widget _buildGenelBilgiKarti(KulturSanatModel data) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
@@ -232,13 +179,13 @@ class _KulturSanatState extends State<KulturSanat> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      data['isim'],
+                      data.isim,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     Text(
-                      data['altBaslik'] ?? 'Adana',
+                      data.altBaslik,
                       style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   ],
@@ -248,7 +195,7 @@ class _KulturSanatState extends State<KulturSanat> {
           ),
           const Divider(height: 16, thickness: 0.5),
           Text(
-            data['aciklama'] ?? '',
+            data.aciklama,
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontSize: 12, color: Colors.black87, height: 1.4),
@@ -258,9 +205,9 @@ class _KulturSanatState extends State<KulturSanat> {
             height: 42,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: detaylar.length,
+              itemCount: data.detaylar.length,
               itemBuilder: (context, dIndex) {
-                final detay = detaylar[dIndex];
+                final detay = data.detaylar[dIndex];
                 return Container(
                   margin: const EdgeInsets.only(right: 8),
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -277,7 +224,10 @@ class _KulturSanatState extends State<KulturSanat> {
                           color: Colors.red.shade400,
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: Text(detay.rozetMetni, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                        child: Text(
+                          detay.rozetMetni, 
+                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)
+                        ),
                       ),
                       const SizedBox(width: 6),
                       Icon(detay.anahtarIkon, size: 13, color: Colors.grey),
@@ -290,12 +240,11 @@ class _KulturSanatState extends State<KulturSanat> {
             ),
           ),
           const Spacer(),
-
           SizedBox(
             width: double.infinity,
             height: 44,
             child: ElevatedButton.icon(
-              onPressed: () => _yolTarifiBaslat(data['lat'], data['lon']),
+              onPressed: () => _yolTarifiBaslat(data.lat, data.lon),
               icon: const Icon(Icons.navigation_outlined, size: 18, color: Colors.white),
               label: const Text("Yol Tarifi Al", style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(

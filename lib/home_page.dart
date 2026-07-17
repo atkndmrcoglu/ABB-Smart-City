@@ -2,8 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:smartcity/widgets/side_menu.dart';
 import 'package:smartcity/widgets/bottom_menu.dart'; 
-import '../models/weather_model/weather_model.dart'; 
-import '../widgets/weather_widget.dart';
+import '../widgets/weather_widget.dart'; // showCircularWeatherPopup buradan geliyor
 
 class HOMEPAGE extends StatefulWidget {
   const HOMEPAGE({super.key});
@@ -33,7 +32,6 @@ class _HOMEPAGEState extends State<HOMEPAGE> {
     'assets/homepage_images/ulu-camii.png',
     'assets/homepage_images/varda-1.png',
     'assets/homepage_images/varda-2.png',
-
   ];
 
   @override
@@ -63,27 +61,6 @@ class _HOMEPAGEState extends State<HOMEPAGE> {
     super.dispose();
   }
 
-  Future<List<WeatherModel>> _fetchLiveWeatherData() async {
-    await Future.delayed(const Duration(seconds: 2));
-    return [
-      WeatherModel(city: 'Adana', temperature: 32, feelsLike: 36, condition: 'Sunny', humidity: 54),
-      WeatherModel(city: 'Adana', temperature: 33, feelsLike: 37, condition: 'Sunny', humidity: 50),
-      WeatherModel(city: 'Adana', temperature: 31, feelsLike: 34, condition: 'Partly Cloudy', humidity: 60),
-      WeatherModel(city: 'Adana', temperature: 30, feelsLike: 33, condition: 'Rainy', humidity: 75),
-      WeatherModel(city: 'Adana', temperature: 32, feelsLike: 35, condition: 'Mostly Sunny', humidity: 55),
-    ];
-  }
-
-  void _showLoadingDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(color: Colors.blueAccent),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -95,26 +72,12 @@ class _HOMEPAGEState extends State<HOMEPAGE> {
         centerTitle: true,
         title: Image.asset(
           'assets/logo.png',
-          height: 70,
+          height: 60,
         ),
         actions: [
-          IconButton(
-            onPressed: () async {
-              _showLoadingDialog(context);
-              try {
-                List<WeatherModel> liveForecastList = await _fetchLiveWeatherData();
-                if (mounted) {
-                  Navigator.of(context).pop();
-                  _showCircularWeatherPopup(context, liveForecastList);
-                }
-              } catch (e) {
-                if (mounted) {
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Veri çekilemedi: $e')),
-                  );
-                }
-              }
+               IconButton(
+                 onPressed: () {
+                   showCircularWeatherPopup(context);
             },
             icon: const Icon(
               Icons.wb_twilight_rounded,
@@ -159,9 +122,9 @@ class _HOMEPAGEState extends State<HOMEPAGE> {
                   height: 8,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: _currentImageIndex == index 
-                        ? Colors.white 
-                        : Colors.white.withValues(alpha:0.5),
+                    color: _currentImageIndex == index
+                        ? Colors.white
+                        : Colors.white.withOpacity(0.5),
                   ),
                 ),
               ),
@@ -171,7 +134,7 @@ class _HOMEPAGEState extends State<HOMEPAGE> {
           // Ana içerik
           Positioned.fill(
             child: Container(
-              color: Colors.black.withValues(alpha: 0.3),
+              color: Colors.black.withOpacity(0.3),
               child: const SafeArea(
                 child: Center(
                 ),
@@ -187,44 +150,4 @@ class _HOMEPAGEState extends State<HOMEPAGE> {
       ),
     );
   }
-}
-
-void _showCircularWeatherPopup(BuildContext context, List<WeatherModel> fiveDayForecast) {
-  final restrictedForecast = fiveDayForecast.take(5).toList();
-
-  showDialog(
-    context: context,
-    barrierDismissible: true, 
-    builder: (BuildContext context) {
-      return Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Container(
-          width: 340,
-          height: 340,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle, 
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black26,
-                blurRadius: 12,
-                offset: Offset(0, 4),
-              ),
-            ],
-          ),
-          child: ClipOval(
-            child: PageView.builder(
-              itemCount: restrictedForecast.length, 
-              physics: const BouncingScrollPhysics(),
-              itemBuilder: (context, index) {
-                final dayData = restrictedForecast[index];
-                return buildCircularWeatherPage(context, dayData, index + 1);
-              },
-            ),
-          ),
-        ),
-      );
-    },
-  );
 }

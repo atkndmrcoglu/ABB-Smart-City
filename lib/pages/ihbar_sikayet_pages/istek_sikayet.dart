@@ -1,3 +1,6 @@
+
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:smartcity/apiler/istek_sikayet_api.dart';
 import 'dart:convert';

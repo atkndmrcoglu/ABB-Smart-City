@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
-import '../models/weather_model/weather_model.dart';
+// open_weather takma adıyla import ederek isim çakışmalarını engelliyoruz
+import 'package:weather/weather.dart' as open_weather; 
+// Kendi yazdığımız api dosyasını import ediyoruz
+import 'package:smartcity/apiler/weather_api.dart'; 
 
-void showCircularWeatherPopup(BuildContext context, List<WeatherModel> fiveDayForecast) {
-  final restrictedForecast = fiveDayForecast.take(5).toList();
+/// Adana'nın hava durumunu çeker ve yükleme durumuna göre dairesel popup gösterir.
+void showCircularWeatherPopup(BuildContext context) {
+  final WeatherApi weatherApi = WeatherApi();
 
   showDialog(
     context: context,
@@ -26,12 +30,55 @@ void showCircularWeatherPopup(BuildContext context, List<WeatherModel> fiveDayFo
             ],
           ),
           child: ClipOval(
-            child: PageView.builder(
-              itemCount: restrictedForecast.length,
-              physics: const BouncingScrollPhysics(),
-              itemBuilder: (context, index) {
-                final dayData = restrictedForecast[index];
-                return buildCircularWeatherPage(context, dayData, index + 1);
+            child: FutureBuilder<AdanaWeatherData>(
+              future: weatherApi.fetchAdanaWeather(),
+              builder: (context, snapshot) {
+                // 1. Durum: Veri yükleniyor
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+                    ),
+                  );
+                }
+
+                // 2. Durum: Hata oluştu (İnternet yoksa veya API'den veri dönmediyse)
+                if (snapshot.hasError || !snapshot.hasData) {
+                  print("WEATHER API HATASI: ${snapshot.error}"); 
+
+                  return Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
+                        const SizedBox(height: 12),
+                        const Text(
+                          "Hata Oluştu",
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          "Hata: ${snapshot.error ?? 'Veri bulunamadı'}",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                // 3. Durum: Veri başarıyla geldi (API tarafında filtrelenmiş temiz 5 gün)
+                final List<open_weather.Weather> uniqueDaysForecast = snapshot.data!.weekly;
+
+                return PageView.builder(
+                  itemCount: uniqueDaysForecast.length,
+                  physics: const BouncingScrollPhysics(),
+                  itemBuilder: (context, index) {
+                    final dayData = uniqueDaysForecast[index];
+                    return buildCircularWeatherPage(context, dayData, index + 1);
+                  },
+                );
               },
             ),
           ),
@@ -41,46 +88,86 @@ void showCircularWeatherPopup(BuildContext context, List<WeatherModel> fiveDayFo
   );
 }
 
-Widget buildCircularWeatherPage(BuildContext context, WeatherModel weather, int dayNumber) {
+/// Popup içindeki her bir gün sayfasını çizen widget.
+Widget buildCircularWeatherPage(BuildContext context, open_weather.Weather weather, int dayNumber) {
+  final double temp = weather.temperature?.celsius ?? 0.0;
+  final double feelsLike = weather.tempFeelsLike?.celsius ?? 0.0;
+  final String cityName = weather.areaName ?? "Adana";
+  final String condition = weather.weatherDescription ?? "Açık";
+
+  // Tarihe göre dinamik gün ismini hesaplayan yardımcı fonksiyon
+  String getDayTitle(DateTime? date, int dayNum) {
+    if (dayNum == 1) return "BUGÜN";
+    if (dayNum == 2) return "YARIN";
+    if (date == null) return "";
+
+    switch (date.weekday) {
+      case DateTime.monday:
+        return "PAZARTESİ";
+      case DateTime.tuesday:
+        return "SALI";
+      case DateTime.wednesday:
+        return "ÇARŞAMBA";
+      case DateTime.thursday:
+        return "PERŞEMBE";
+      case DateTime.friday:
+        return "CUMA";
+      case DateTime.saturday:
+        return "CUMARTESİ";
+      case DateTime.sunday:
+        return "PAZAR";
+      default:
+        return "";
+    }
+  }
+
+  final String dayTitle = getDayTitle(weather.date, dayNumber);
+
   return Padding(
-    padding: const EdgeInsets.all(32.0),                                                                                                                                                                                            //Atakan Demircioğlu Tarafından Adana Büyükşehir Belediyesi Bilgi İşlem Dairesi Başkanlığı için 2026 Yılında Geliştirilmiştir
+    padding: const EdgeInsets.all(32.0), // Atakan Demircioğlu Tarafından Adana Büyükşehir Belediyesi Bilgi İşlem Dairesi Başkanlığı için 2026 Yılında Geliştirilmiştir
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
+        // Dinamik olarak hesaplanan gün başlığı (BUGÜN, YARIN, CUMA vb.)
         Text(
-          dayNumber == 1 ? "BUGÜN" : dayNumber == 2 ? "YARIN" : "${dayNumber - 1} GÜN SONRA",
+          dayTitle,
           style: const TextStyle(
-            fontSize: 16, 
+            fontSize: 14, 
             fontWeight: FontWeight.w600, 
             color: Colors.blueAccent
           ),
         ),
         const SizedBox(height: 4),
         Text(
-          weather.city,
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          cityName,
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 12),
-        const Icon(Icons.wb_sunny, size: 50, color: Colors.orange),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
+        const Icon(Icons.wb_sunny, size: 45, color: Colors.orange),
+        const SizedBox(height: 8),
         Text(
-          '${weather.temperature.toStringAsFixed(0)}°C',
-          style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+          '${temp.toStringAsFixed(0)}°C',
+          style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
         ),
         Text(
-          weather.condition,
-          style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+          condition.toUpperCase(),
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(Icons.thermostat, size: 14, color: Colors.redAccent),
             const SizedBox(width: 4),
-            Text('${weather.feelsLike.toStringAsFixed(0)}°C', style: const TextStyle(fontSize: 12)),
+            Text(
+              'Hissedilen: ${feelsLike.toStringAsFixed(0)}°C', 
+              style: const TextStyle(fontSize: 11),
+            ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
+        // Sayfa Gösterge Noktaları
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(5, (dotIndex) {

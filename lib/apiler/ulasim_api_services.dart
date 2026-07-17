@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/ulasim_model.dart';
@@ -6,7 +6,6 @@ import '../models/ulasim_model.dart';
 class UlasimService {
   final String baseUrl = "http://172.20.10.10/api/ulasim.php";
 
-  // 1. Tüm Hatları Getir
   Future<List<Hat>> getTumHatlar() async {
     final String fullUrl = '$baseUrl?action=routes';
     
@@ -40,7 +39,6 @@ class UlasimService {
     return [];
   }
 
-  // 2. Rota Çizgisini Getir
   Future<List<RotaNoktasi>> getRotaCizgisi(String shapeId) async {
     final String fullUrl = '$baseUrl?action=shapes&id=$shapeId';
     
@@ -74,7 +72,6 @@ class UlasimService {
     return [];
   }
 
-  // 3. Sefer Duraklarını Getir
   Future<List<Durak>> getSeferDuraklari(String tripId) async {
     final String fullUrl = '$baseUrl?action=stops&id=$tripId';
 
@@ -108,7 +105,6 @@ class UlasimService {
     return [];
   }
 
-  // 4. Tüm Durakları Getir
   Future<List<Durak>> getTumDuraklar() async {
     final String fullUrl = '$baseUrl?action=all_stops';
 
@@ -142,7 +138,6 @@ class UlasimService {
     return [];
   }
 
-  // 5. Duraktan Geçen Hatları Getir
   Future<List<String>> getDurakHatlar(String stopId) async {
     final String fullUrl = '$baseUrl?action=stop_routes&id=$stopId';
 
@@ -157,7 +152,6 @@ class UlasimService {
         List<String> hatlar = [];
         
         if (jsonData is List) {
-          // PHP'den dönen listeyi: [{"route_short_name": "100"}, ...] güvenle Map'ler
           hatlar = jsonData
               .map((e) => e is Map ? (e['route_short_name']?.toString() ?? '') : '')
               .where((item) => item.isNotEmpty)
@@ -178,8 +172,6 @@ class UlasimService {
     }
     return [];
   }
-
-  // 6. Hat Detaylarını Getir
   Future<Map<String, String>?> getHatDetay(String hatNo) async {
     final String fullUrl = '$baseUrl?action=route_details&id=$hatNo';
 
@@ -211,7 +203,6 @@ class UlasimService {
               guzergah = first['route_description']?.toString() ?? 'Bilinmiyor';
             }
           } else {
-            // PHP'den doğrudan dönen obje yapısını okur: {"last_stop": "...", "route_description": "..."}
             sonDurak = jsonData['last_stop']?.toString() ?? 'Bilinmiyor';
             guzergah = jsonData['route_description']?.toString() ?? 'Bilinmiyor';
           }
@@ -228,7 +219,6 @@ class UlasimService {
     return null;
   }
 
-  // 7. Yaklaşan Araç Bilgisini Getir
   Future<Map<String, String>?> getYaklasanArac(String stopId, String hatNo) async {
     final String fullUrl = '$baseUrl?action=vehicle_info&stop_id=$stopId&route_id=$hatNo';
 
@@ -276,7 +266,6 @@ class UlasimService {
     return null;
   }
 
-  // 8. Kalkış Saatlerini Getir
   Future<List<String>> getKalkisSaatleri(String hatNo) async {
     final String fullUrl = '$baseUrl?action=departure_times&route_id=$hatNo';
 
@@ -290,7 +279,6 @@ class UlasimService {
         List<String> saatler = [];
         
         if (jsonData is List) {
-          // PHP'den gelen [{"time": "06:00"}] listesini doğrudan String listesine ("06:00") çevirir
           saatler = jsonData
               .map((e) => e is Map ? (e['time']?.toString() ?? '') : '')
               .where((t) => t.isNotEmpty)

@@ -1,4 +1,3 @@
-// ignore_for_file: avoid_print
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -38,7 +37,7 @@ class _UlasimState extends State<Ulasim> {
   @override
   void initState() {
     super.initState();
-    _tumDuraklariYukle();
+    _ilkVerileriYukle();
     _hatListesiniYukle();
     _aramaController.addListener(() {
       _hatlariFiltrele(_aramaController.text);
@@ -52,36 +51,34 @@ class _UlasimState extends State<Ulasim> {
     super.dispose();
   }
 
-
   void _gorunurDuraklariGuncelle(MapCamera camera) {
     if (_secilenHat == null && _tumDuraklar.isNotEmpty) {
-      final center = camera.center;
       final zoom = camera.zoom;
-      final double degreeRange = 0.05 / (zoom / 10);
-      
-      final double minLat = center.latitude - degreeRange;
-      final double maxLat = center.latitude + degreeRange;
-      final double minLng = center.longitude - degreeRange;
-      final double maxLng = center.longitude + degreeRange;
+      if (zoom < 13.0) {
+        if (_duraklar.isNotEmpty) {
+          setState(() {
+            _duraklar = [];
+          });
+        }
+        return;
+      }
+
+      final bounds = camera.visibleBounds;
       
       final gorunurDuraklar = _tumDuraklar.where((durak) {
-        final lat = durak.koordinat.latitude;
-        final lng = durak.koordinat.longitude;
-        return lat >= minLat && lat <= maxLat && lng >= minLng && lng <= maxLng;
+        return bounds.contains(durak.koordinat);
       }).toList();
       
-      if (gorunurDuraklar.length < _duraklar.length && gorunurDuraklar.isNotEmpty) {
-        setState(() {
-          _duraklar = gorunurDuraklar;
-        });
-      }
+      setState(() {
+        _duraklar = gorunurDuraklar;
+      });
     }
   }
 
   void _onPositionChanged(MapCamera camera, bool hasGesture) {
     if (!hasGesture) return;
     _moveEndTimer?.cancel();
-    _moveEndTimer = Timer(const Duration(milliseconds: 600), () {
+    _moveEndTimer = Timer(const Duration(milliseconds: 400), () {
       if (_sonMerkez != camera.center || _sonZoom != camera.zoom) {
         _sonMerkez = camera.center;
         _sonZoom = camera.zoom;
@@ -89,17 +86,20 @@ class _UlasimState extends State<Ulasim> {
       }
     });
   }
-
-  Future<void> _tumDuraklariYukle() async {
+  Future<void> _ilkVerileriYukle() async {
     setState(() => _yukleniyor = true);
-    final duraklar = await _ulasimService.getTumDuraklar();
-    setState(() {
+    try {
+      final duraklar = await _ulasimService.getTumDuraklar();
       _tumDuraklar = duraklar;
-      _duraklar = duraklar;
-      _yukleniyor = false;
-    });
-    if (duraklar.isNotEmpty) {
-      _mapController.move(duraklar[duraklar.length ~/ 2].koordinat, 12.0);
+      setState(() {
+        _yukleniyor = false;
+      });
+      _mapController.move(const LatLng(37.0, 35.3), 13.5);
+    } catch (e) {
+      setState(() {
+        _yukleniyor = false;
+        _hataMesaji = 'Duraklar yüklenirken bir hata oluştu.';
+      });
     }
   }
 
@@ -164,7 +164,7 @@ class _UlasimState extends State<Ulasim> {
 
       setState(() {
         _guzergahCizgisi = koordinatListesi;
-        _duraklar = gelenDuraklar.isNotEmpty ? gelenDuraklar : _tumDuraklar;
+        _duraklar = gelenDuraklar;
         _yukleniyor = false;
       });
 
@@ -216,7 +216,7 @@ class _UlasimState extends State<Ulasim> {
         initialCenter: const LatLng(37.0, 35.3),
         initialZoom: 12.0,
         onPositionChanged: (camera, hasGesture) {
-          if (hasGesture) _onPositionChanged(camera, hasGesture);
+          _onPositionChanged(camera, hasGesture);
         },
       ),
       children: [
@@ -237,7 +237,7 @@ class _UlasimState extends State<Ulasim> {
         Polyline(
           points: _guzergahCizgisi,
           strokeWidth: 8.0,
-          color: Colors.blue.shade900.withValues(alpha:0.35),
+          color: Colors.blue.shade900.withValues(alpha: 0.35),
         ),
         Polyline(
           points: _guzergahCizgisi,
@@ -271,7 +271,7 @@ class _UlasimState extends State<Ulasim> {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha:0.25),
+                    color: Colors.black.withValues(alpha: 0.25),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -317,7 +317,7 @@ class _UlasimState extends State<Ulasim> {
             BoxShadow(
               color: (_secilenHat == null ? Colors.green : Colors.blue)
                   .shade300
-                  .withValues(alpha:0.4),
+                  .withValues(alpha: 0.4),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -422,7 +422,7 @@ class _UlasimState extends State<Ulasim> {
         children: [
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment : CrossAxisAlignment.start,
               children: [
                 Text(
                   _secilenHat != null ? '🚌 ${_secilenHat!.routeShortName}' : '📍 Tüm Duraklar',
@@ -432,8 +432,8 @@ class _UlasimState extends State<Ulasim> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  _secilenHat != null ? _secilenHat!.routeLongName : '${_tumDuraklar.length} durak',
-                  style: TextStyle(color: Colors.white.withValues(alpha:0.6), fontSize: 12),
+                  _secilenHat != null ? _secilenHat!.routeLongName : '${_tumDuraklar.length} durak hafızada',
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 12),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -454,7 +454,7 @@ class _UlasimState extends State<Ulasim> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha:0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -498,7 +498,7 @@ class _UlasimState extends State<Ulasim> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha:0.08),
+          color: Colors.white.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(12),
         ),
         child: TextField(
@@ -506,7 +506,7 @@ class _UlasimState extends State<Ulasim> {
           style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
             hintText: "🔍 Hat ara...",
-            hintStyle: TextStyle(color: Colors.white.withValues(alpha:0.3)),
+            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
             border: InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           ),
@@ -528,12 +528,12 @@ class _UlasimState extends State<Ulasim> {
         return Container(
           margin: const EdgeInsets.only(bottom: 4),
           decoration: BoxDecoration(
-            color: isSelected ? Colors.blue.withValues(alpha:0.2) : Colors.white.withValues(alpha:0.03),
+            color: isSelected ? Colors.blue.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.03),
             borderRadius: BorderRadius.circular(12),
           ),
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: isSelected ? Colors.blue : Colors.blue.withValues(alpha:0.2),
+              backgroundColor: isSelected ? Colors.blue : Colors.blue.withValues(alpha: 0.2),
               child: Text(
                 hat.routeShortName,
                 style: TextStyle(
@@ -558,7 +558,7 @@ class _UlasimState extends State<Ulasim> {
 
   Widget _buildDurakListesi() {
     if (_duraklar.isEmpty) {
-      return Center(child: Text('Durak yok', style: TextStyle(color: Colors.white.withValues(alpha:0.3))));
+      return Center(child: Text('Görünür durak yok (Haritaya yaklaşın)', style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: 12)));
     }
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -568,12 +568,12 @@ class _UlasimState extends State<Ulasim> {
         return Container(
           margin: const EdgeInsets.only(bottom: 4),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha:0.03),
+            color: Colors.white.withValues(alpha: 0.03),
             borderRadius: BorderRadius.circular(12),
           ),
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: Colors.green.withValues(alpha:0.2),
+              backgroundColor: Colors.green.withValues(alpha: 0.2),
               child: Text(
                 '${index + 1}',
                 style: const TextStyle(color: Colors.green, fontSize: 11, fontWeight: FontWeight.bold),
@@ -612,7 +612,7 @@ class _UlasimState extends State<Ulasim> {
             color: Colors.white,
             shape: BoxShape.circle,
             boxShadow: [
-              BoxShadow(color: Colors.black.withValues(alpha:0.12), blurRadius: 8, offset: const Offset(0, 3)),
+              BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 8, offset: const Offset(0, 3)),
             ],
           ),
           child: IconButton(
@@ -639,7 +639,7 @@ class _UlasimState extends State<Ulasim> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha:0.15), blurRadius: 12, offset: const Offset(0, 4)),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 12, offset: const Offset(0, 4)),
           ],
         ),
         child: Column(
@@ -669,7 +669,7 @@ class _UlasimState extends State<Ulasim> {
 
   Widget _buildYuklemeEkrani() {
     return Container(
-      color: Colors.black.withValues(alpha:0.4),
+      color: Colors.black.withValues(alpha: 0.4),
       child: Center(
         child: Container(
           padding: const EdgeInsets.all(32),
@@ -690,8 +690,6 @@ class _UlasimState extends State<Ulasim> {
     );
   }
 
-  // ==================== DURAK DETAY ====================
-
   void _showDurakDetay(Durak durak) async {
     setState(() => _yukleniyor = true);
 
@@ -711,6 +709,10 @@ class _UlasimState extends State<Ulasim> {
       try {
         final hatDetay = await _ulasimService.getHatDetay(hatNo);
         final aracBilgisi = await _ulasimService.getYaklasanArac(durak.id, hatNo);
+        final rawSaatler = hatDetay?['saatler'];
+        final List<String> kalkisSaatleri = (rawSaatler is Iterable && rawSaatler != null)
+          ? List<String>.from((rawSaatler as Iterable).map((e) => e?.toString() ?? ''))
+          : <String>[];
 
         if (hatNo.isNotEmpty) {
           yaklasanAraclar.add({
@@ -719,6 +721,7 @@ class _UlasimState extends State<Ulasim> {
             "mesafe": aracBilgisi?['mesafe'] ?? "Bilinmiyor",
             "sonDurak": hatDetay?['sonDurak'] ?? "Bilinmiyor",
             "guzergah": hatDetay?['guzergah'] ?? "Bilinmiyor",
+            "kalkisSaatleri": kalkisSaatleri,
           });
         }
       } catch (e) {
@@ -755,7 +758,6 @@ class _UlasimState extends State<Ulasim> {
                     _buildDetayHeader(durak),
                     const Divider(height: 1),
                     
-                    // Sekmeler Doğrudan StatefulBuilder İçinde Güncellenebilir Hale Getirildi
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                       child: Row(
@@ -955,7 +957,7 @@ class _UlasimState extends State<Ulasim> {
       itemCount: yaklasanAraclar.length,
       itemBuilder: (context, index) {
         final arac = yaklasanAraclar[index];
-        final saatler = arac['kalkisSaatleri'] as List<String>;
+        final saatler = (arac['kalkisSaatleri'] as List<String>?) ?? [];
         
         return GestureDetector(
           onTap: () {
@@ -972,7 +974,7 @@ class _UlasimState extends State<Ulasim> {
               border: Border.all(color: Colors.grey.shade100, width: 1.5),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha:0.02),
+                  color: Colors.black.withValues(alpha: 0.02),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
@@ -1092,7 +1094,8 @@ class _UlasimState extends State<Ulasim> {
       itemCount: yaklasanAraclar.length,
       itemBuilder: (context, index) {
         final arac = yaklasanAraclar[index];
-        final saatler = arac['kalkisSaatleri'] as List<String>;
+        // ÇÖZÜM: Null-Safety koruması eklendi.
+        final saatler = (arac['kalkisSaatleri'] as List<String>?) ?? [];
         
         return GestureDetector(
           onTap: () {
@@ -1109,7 +1112,7 @@ class _UlasimState extends State<Ulasim> {
               border: Border.all(color: Colors.grey.shade100, width: 1.5),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha :0.02),
+                  color: Colors.black.withValues(alpha: 0.02),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
@@ -1258,18 +1261,18 @@ class _UlasimState extends State<Ulasim> {
                             fontWeight: FontWeight.bold,
                             color: isPassed ? Colors.grey.shade400 : Colors.blue.shade800,
                             decoration: isPassed ? TextDecoration.lineThrough : TextDecoration.none,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
+              const SizedBox(height: 12),
+            ],
           ),
         );
       },
-    ),
-  ),
-  const SizedBox(height: 12),
-],
-),
-);
-},
-);
-}
+    );
+  }
 }
