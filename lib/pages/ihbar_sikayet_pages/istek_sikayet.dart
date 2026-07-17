@@ -1,10 +1,10 @@
-
-// ignore_for_file: deprecated_member_use
+// ignore_for_file: deprecated_member_use, avoid_print
 
 import 'package:flutter/material.dart';
-import 'package:smartcity/apiler/istek_sikayet_api.dart';
+import 'package:smartcity/apiler/istek_sikayet_api.dart'; 
 import 'dart:convert';
 import 'package:flutter/services.dart'; 
+import 'package:smartcity/models/ihbar_sikayet/istek_sikayet_model.dart';
 
 class IstekSikayet extends StatefulWidget {
   const IstekSikayet({super.key});
@@ -16,6 +16,7 @@ class IstekSikayet extends StatefulWidget {
 class _IstekSikayetState extends State<IstekSikayet> {
   final _formKey = GlobalKey<FormState>();
   final RequestService _requestService = RequestService();
+
   bool _isLoading = false;
 
   String _icerikTuru = 'BİLGİ';
@@ -24,14 +25,8 @@ class _IstekSikayetState extends State<IstekSikayet> {
   String? _secilenAy;
   String? _secilenYil;
   String? _secilenIlce;
-  String? _secilenMahalle;
-  String? _secilenCadde;
   bool _kvkkOnay = false;
   bool _captchaOnay = false;
-  String? _secilenFotoPath; 
-  String? _secilenDosyaPath; 
-  String? _secilenFotoAdi;
-  String? _secilenDosyaAdi;
 
   final List<String> _yillar = List.generate(2026 - 1920 + 1, (index) => (2026 - index).toString());
   final List<String> _aylar = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
@@ -42,50 +37,16 @@ class _IstekSikayetState extends State<IstekSikayet> {
     'SARIÇAM', 'SEYHAN', 'TUFANBEYLİ', 'YUMURTALIK', 'YÜREĞİR'
   ];
 
-  // İlçe -> Mahalle -> Caddeler zincirleme yapısını tutan harita
-  Map<String, Map<String, List<String>>> _adanaAdresMap = {};
-
   final TextEditingController _tcController = TextEditingController();
   final TextEditingController _adSoyadController = TextEditingController();
   final TextEditingController _telefonController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _ekAdresController = TextEditingController();
-  final TextEditingController _aciklamaController = TextEditingController();
-  
+  final TextEditingController _mahalleController = TextEditingController();
+  final TextEditingController _caddeController = TextEditingController();
   final TextEditingController _secilenDisKapiController = TextEditingController();
   final TextEditingController _secilenIcKapiController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    _jsonVerisiniYukle();
-  }
-
-  Future<void> _jsonVerisiniYukle() async {
-    try {
-      await loadAdanaData();
-      if (mounted) {
-        setState(() {});
-      }
-    } catch (e) {
-      debugPrint("JSON yükleme esnasında hata oluştu: $e");
-    }
-  }
-
-  Future<void> loadAdanaData() async {
-    final String response = await rootBundle.loadString('assets/adana_data.json');
-    final Map<String, dynamic> data = json.decode(response);
-    
-    _adanaAdresMap = data.map((ilceKey, mahalleMap) {
-      final Map<String, dynamic> icMahalleMap = mahalleMap;
-      return MapEntry(
-        ilceKey.toUpperCase(), 
-        icMahalleMap.map((mahalleKey, caddeListesi) => 
-          MapEntry(mahalleKey, List<String>.from(caddeListesi))
-        ),
-      );
-    });
-  }
+  final TextEditingController _ekAdresController = TextEditingController();
+  final TextEditingController _aciklamaController = TextEditingController();
 
   List<String> _getGunler() {
     if (_secilenAy == null) {
@@ -131,32 +92,30 @@ class _IstekSikayetState extends State<IstekSikayet> {
 
     String dogumTarihi = "${_secilenYil ?? ''}-${_secilenAy ?? ''}-${_secilenGun ?? ''}";
 
-    Map<String, String> formData = {
-      'icerik_turu': _icerikTuru,
-      'tc_no': _tcController.text.trim(),
-      'dogum_tarihi': dogumTarihi,
-      'ad_soyad': _adSoyadController.text.trim(),
-      'telefon': _telefonController.text.trim(),
-      'email': _emailController.text.trim(),
-      'bilgileri_gizle': _bilgilerimiGizle ? '1' : '0',
-      'ilce': _secilenIlce ?? '',
-      'mahalle': _secilenMahalle ?? '',
-      'cadde_sokak': _secilenCadde ?? '',
-      'dis_kapi_no': _secilenDisKapiController.text.trim(),
-      'ic_kapi_no': _secilenIcKapiController.text.trim(),
-      'ek_adres': _ekAdresController.text.trim(),
-      'aciklama': _aciklamaController.text.trim(),
-    };
+    final yeniTalep = IstekSikayetModel(
+      icerikTuru: _icerikTuru,
+      tcNo: _tcController.text.trim(),
+      dogumTarihi: dogumTarihi,
+      adSoyad: _adSoyadController.text.trim(),
+      telefon: _telefonController.text.trim(),
+      email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
+      bilgileriGizle: _bilgilerimiGizle,
+      ilce: _secilenIlce ?? '',
+      mahalle: _mahalleController.text.trim(), // Değer doğrudan textfield'dan alınıyor
+      caddeSokak: _caddeController.text.trim(), // Değer doğrudan textfield'dan alınıyor
+      disKapiNo: _secilenDisKapiController.text.trim().isEmpty ? null : _secilenDisKapiController.text.trim(),
+      icKapiNo: _secilenIcKapiController.text.trim().isEmpty ? null : _secilenIcKapiController.text.trim(),
+      ekAdres: _ekAdresController.text.trim().isEmpty ? null : _ekAdresController.text.trim(),
+      aciklama: _aciklamaController.text.trim(),
+    );
 
     bool basariliMi = await _requestService.gonderIstekSikayet(
-      veri: formData,
-      fotoPath: _secilenFotoPath,
-      dosyaPath: _secilenDosyaPath,
+      veri: yeniTalep.toJson(),
     );
 
     setState(() => _isLoading = false);
 
-     if (!mounted) return;
+    if (!mounted) return;
 
     if (basariliMi) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -175,23 +134,17 @@ class _IstekSikayetState extends State<IstekSikayet> {
     _adSoyadController.dispose();
     _telefonController.dispose();
     _emailController.dispose();
-    _ekAdresController.dispose();
-    _aciklamaController.dispose();
+    _mahalleController.dispose();
+    _caddeController.dispose();
     _secilenDisKapiController.dispose();
     _secilenIcKapiController.dispose();
+    _ekAdresController.dispose();
+    _aciklamaController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    List<String> aktifMahalleler = _secilenIlce != null 
-        ? (_adanaAdresMap[_secilenIlce]?.keys.toList() ?? []) 
-        : [];
-
-    List<String> aktifCaddeler = (_secilenIlce != null && _secilenMahalle != null)
-        ? (_adanaAdresMap[_secilenIlce]?[_secilenMahalle] ?? [])
-        : [];
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -211,7 +164,6 @@ class _IstekSikayetState extends State<IstekSikayet> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildSectionTitle('İçerik Türü', zorunlu: true),
                       const SizedBox(height: 12),
@@ -304,34 +256,25 @@ class _IstekSikayetState extends State<IstekSikayet> {
                         child: _buildFormDropdown(_ilceler, _secilenIlce, (v) {
                           setState(() {
                             _secilenIlce = v;
-                            _secilenMahalle = null; 
-                            _secilenCadde = null;
                           });
                         }),
                       ),
                       _buildFormRow(
                         label: 'Mahalle',
                         zorunlu: true,
-                        child: _buildFormDropdown(
-                          aktifMahalleler, 
-                          _secilenMahalle, 
-                          (v) {
-                            setState(() {
-                              _secilenMahalle = v;
-                              _secilenCadde = null; 
-                            });
-                          }, 
-                          disabledHint: 'Önce İlçe Seçiniz',
+                        child: _buildTextFormField(
+                          _mahalleController, 
+                          hint: 'Mahalle adını yazınız',
+                          validator: (v) => v == null || v.isEmpty ? 'Zorunlu alan' : null
                         ),
                       ),
                       _buildFormRow(
                         label: 'Cadde/ Sokak',
                         zorunlu: true,
-                        child: _buildFormDropdown(
-                          aktifCaddeler, 
-                          _secilenCadde, 
-                          (v) => setState(() => _secilenCadde = v),
-                          disabledHint: 'Önce Mahalle Seçiniz',
+                        child: _buildTextFormField(
+                          _caddeController, 
+                          hint: 'Cadde veya sokak adını yazınız',
+                          validator: (v) => v == null || v.isEmpty ? 'Zorunlu alan' : null
                         ),
                       ),
                       _buildFormRow(
@@ -355,52 +298,6 @@ class _IstekSikayetState extends State<IstekSikayet> {
                         label: 'Açıklama',
                         zorunlu: true,
                         child: _buildTextFormField(_aciklamaController, maxLines: 5, validator: (v) => v == null || v.isEmpty ? 'Açıklama boş bırakılamaz' : null),
-                      ),
-                      const Divider(color: Color(0xFFEEEEEE), height: 1),
-
-                      _buildFormRow(
-                        label: 'Fotoğraf Yükle',
-                        child: InkWell(
-                          onTap: () {
-                            setState(() {
-                              _secilenFotoAdi = "fotograf_1.jpg";
-                              _secilenFotoPath = "/data/user/0/com.example/cache/fotograf_1.jpg"; 
-                            });
-                          },
-                          child: Row(
-                            children: [
-                              const Icon(Icons.image, color: Colors.grey, size: 28),
-                              if (_secilenFotoAdi != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 8.0),
-                                  child: Text(_secilenFotoAdi!, style: const TextStyle(fontSize: 12, color: Colors.green)),
-                                )
-                            ],
-                          ),
-                        ),
-                      ),
-                      const Divider(color: Color(0xFFEEEEEE), height: 1),
-
-                      _buildFormRow(
-                        label: 'Dosya Yükle',
-                        child: InkWell(
-                          onTap: () {
-                            setState(() {
-                              _secilenDosyaAdi = "belge.pdf";
-                              _secilenDosyaPath = "/data/user/0/com.example/cache/belge.pdf";
-                            });
-                          },
-                          child: Row(
-                            children: [
-                              const Icon(Icons.attach_file, color: Colors.grey, size: 28),
-                              if (_secilenDosyaAdi != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 8.0),
-                                  child: Text(_secilenDosyaAdi!, style: const TextStyle(fontSize: 12, color: Colors.green)),
-                                )
-                            ],
-                          ),
-                        ),
                       ),
                       const Divider(color: Color(0xFFEEEEEE), height: 24),
 

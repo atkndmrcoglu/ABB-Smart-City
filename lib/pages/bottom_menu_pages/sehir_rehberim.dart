@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smartcity/pages/sehir_rehberim_pages/bankalar.dart';
 import 'package:smartcity/pages/sehir_rehberim_pages/devlet_daireleri.dart';
 import 'package:smartcity/pages/sehir_rehberim_pages/namaz_vakitleri.dart';
 import 'package:smartcity/pages/sehir_rehberim_pages/sinemalar_tiyatrolar.dart';
@@ -53,7 +54,8 @@ class _SehirRehberimState extends State<SehirRehberim> {
     },
     {
       'title': 'BANKALAR',
-      'logo': 'assets/sehir_rehberim_images/bankalar.png',
+      'logo':'assets/sehir_rehberim_images/bankalar.png',
+      'page': () => Bankalar(),
     },
     {
       'title': 'DEVLET DAİRELERİ',

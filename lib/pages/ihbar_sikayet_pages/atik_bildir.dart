@@ -1,6 +1,6 @@
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously
 import 'package:flutter/material.dart';
-import 'package:smartcity/apiler/atik_bildir_api.dart';
+import 'package:smartcity/apiler/ihbar_sikayet_apiler/atik_bildir_api.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 

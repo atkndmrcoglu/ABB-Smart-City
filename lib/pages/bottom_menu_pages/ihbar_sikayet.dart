@@ -32,7 +32,7 @@ class _IhbarSikayetState extends State<IhbarSikayet> {
     {
       'title': 'ATIK BİLDİR',
       'logo': 'assets/ihbar_sikayet_images/atik_bildir.png',
-      'page': () => const AtikBildir(),
+      'page': () => AtikBildir(),
     },
     {
       'title': 'ALO 185 ASKİ İHBAR',

@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:smartcity/widgets/side_menu.dart';
 import 'package:smartcity/widgets/bottom_menu.dart'; 
-import '../widgets/weather_widget.dart'; // showCircularWeatherPopup buradan geliyor
+import '../widgets/weather_widget.dart';
 
 class HOMEPAGE extends StatefulWidget {
   const HOMEPAGE({super.key});
@@ -38,18 +38,21 @@ class _HOMEPAGEState extends State<HOMEPAGE> {
   void initState() {
     super.initState();
     _pageController = PageController();
-
-    Future.delayed(Duration.zero, () {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       _startImageSlideshow();
     });
   }
 
   void _startImageSlideshow() {
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _currentImageIndex = (_currentImageIndex + 1) % _backgroundImages.length;
-        });
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted && _pageController.hasClients) {
+        // Bir sonraki resmin indeksini hesaplıyoruz
+        final nextIndex = (_currentImageIndex + 1) % _backgroundImages.length;
+        _pageController.animateToPage(
+          nextIndex,
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.easeInOut,
+        );
         _startImageSlideshow();
       }
     });
@@ -75,14 +78,14 @@ class _HOMEPAGEState extends State<HOMEPAGE> {
           height: 60,
         ),
         actions: [
-               IconButton(
-                 onPressed: () {
-                   showCircularWeatherPopup(context);
+          IconButton(
+            onPressed: () {
+              showCircularWeatherPopup(context);
             },
             icon: const Icon(
               Icons.wb_twilight_rounded,
               size: 32.0,
-              color: Colors.white,
+              color: Colors.black,
             ),
           ),
         ],
@@ -108,6 +111,7 @@ class _HOMEPAGEState extends State<HOMEPAGE> {
               },
             ),
           ),
+          
           Positioned(
             bottom: 100,
             left: 0,
@@ -124,25 +128,21 @@ class _HOMEPAGEState extends State<HOMEPAGE> {
                     shape: BoxShape.circle,
                     color: _currentImageIndex == index
                         ? Colors.white
-                        : Colors.white.withOpacity(0.5),
+                        : Colors.white.withValues(alpha: 0.5),
                   ),
                 ),
               ),
             ),
           ),
-
-          // Ana içerik
           Positioned.fill(
             child: Container(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withValues(alpha: 0.3),
               child: const SafeArea(
-                child: Center(
-                ),
+                child: Center(),
               ),
             ),
           ),
           
-          // Bottom Menu
           const Positioned.fill(
             child: BottomMenu(),
           ),
