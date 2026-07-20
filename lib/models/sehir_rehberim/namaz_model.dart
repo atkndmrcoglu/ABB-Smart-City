@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 class NamazVakti {
 final String saat;
 final String vakit;

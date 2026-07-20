@@ -5,6 +5,7 @@ import 'package:smartcity/pages/sehir_rehberim_pages/namaz_vakitleri.dart';
 import 'package:smartcity/pages/sehir_rehberim_pages/sinemalar_tiyatrolar.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:smartcity/pages/sehir_rehberim_pages/kultur_sanat.dart';
+import 'package:smartcity/pages/sehir_rehberim_pages/egitim_universiteler.dart';
 
 class SehirRehberim extends StatefulWidget {
   const SehirRehberim({super.key});
@@ -46,6 +47,7 @@ class _SehirRehberimState extends State<SehirRehberim> {
     {
       'title': 'EĞİTİM/ÜNİVERSİTELER',
       'logo': 'assets/sehir_rehberim_images/egitim.png',
+      'page': () => EgitimUniversiteler(),
     },
     {
       'title': 'NAMAZ VAKİTLERİ',
@@ -60,7 +62,7 @@ class _SehirRehberimState extends State<SehirRehberim> {
     {
       'title': 'DEVLET DAİRELERİ',
       'logo': 'assets/sehir_rehberim_images/devlet_daireleri.png',
-      'page': const DevletDaireleri(),
+      'page': () => DevletDaireleri(),
     },
   ];
   void _onItemTap(Map<String, dynamic> item) async {

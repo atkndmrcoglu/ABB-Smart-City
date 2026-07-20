@@ -50,11 +50,9 @@ class _NamazState extends State<Namaz> with SingleTickerProviderStateMixin {
       }
     });
 
-    // PageView kaydırıldıkça haritayı ilgili camiye odaklar
     _pageController.addListener(() {
       if (_pageController.page == null) return;
       int next = _pageController.page!.round();
-      // Liste boş değilse ve geçerli bir index aralığındaysa çalışmasını garanti ediyoruz
       if (_camiListesi.isNotEmpty && _seciliCamiIndex != next && next < _camiListesi.length) {
         setState(() {
           _seciliCamiIndex = next;
@@ -65,7 +63,6 @@ class _NamazState extends State<Namaz> with SingleTickerProviderStateMixin {
     });
   }
 
-  // API'den camileri çeken fonksiyon
   Future<void> _camileriYukle() async {
     setState(() => _isCamilerLoading = true);
     final veriler = await _camiService.getTumCamiler();
@@ -312,6 +309,7 @@ class _NamazState extends State<Namaz> with SingleTickerProviderStateMixin {
           );
         } else if (snapshot.hasError) {
           return Padding(
+            
             padding: const EdgeInsets.all(24.0),
             child: Center(child: Text('Hata: ${snapshot.error.toString().replaceAll("Exception:", "")}', style: const TextStyle(color: Colors.black))),
           );

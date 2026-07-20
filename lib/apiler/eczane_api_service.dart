@@ -4,9 +4,6 @@ import 'package:flutter/services.dart'; // rootBundle için gerekli
 import '../models/eczane_model.dart';
 
 class EczaneApiService {
-  
-  // Gelecekte gerçek API açıldığında burayı kullanacaksın
-  // final String _baseUrl = "https://api.adana.bel.tr/eczaneler";
 
   Future<List<Eczane>> nobetciEczaneleriGetir(String ilce) async {
     try {

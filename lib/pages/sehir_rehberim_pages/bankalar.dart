@@ -28,7 +28,6 @@ class _BankalarState extends State<Bankalar> {
   void initState() {
     super.initState();
     _pageController = PageController(viewportFraction: 0.88);
-    // API servisindeki doğru metot ismini çağırıyoruz
     _futureYerler = _apiService.getTumBankalar(); 
 
     _pageController.addListener(() {

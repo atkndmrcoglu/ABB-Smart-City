@@ -1,7 +1,7 @@
 // ignore_for_file: avoid_print
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/wifi_noktasi_model.dart'; // Model adını buna göre güncelleyebilirsin
+import '../models/wifi_noktasi_model.dart';
 
 class WifiNoktasiService {
   final String baseUrl = "http://172.20.10.10/api/wifi_noktalari.php";
@@ -18,7 +18,6 @@ class WifiNoktasiService {
       if (response.statusCode == 200) {
         final dynamic jsonData = json.decode(response.body);
 
-        // API'den Map (Obje) dönüyorsa (Örn: {"status": true, "data": [...]})
         if (jsonData is Map<String, dynamic>) {
           if (jsonData.containsKey('error')) {
             print('API Hatası: ${jsonData['error']}');
@@ -31,8 +30,6 @@ class WifiNoktasiService {
           }
           return [];
         }
-        
-        // API doğrudan liste dönüyorsa (Örn: [ {"id": 1, ...}, {"id": 2, ...} ])
         if (jsonData is List) {
           print('Yüklenen WiFi Noktası Sayısı: ${jsonData.length}');
           return jsonData.map((json) => WifiNoktasi.fromJson(json)).toList();

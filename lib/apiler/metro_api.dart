@@ -4,8 +4,6 @@ import '/models/metro_model.dart';
 
 class MetroApi {
   static const String _baseUrl = "http://172.20.10.10/api/metro.php";
-
-  // 1. Tablo: Tüm İstasyonları Çek
   Future<List<MetroStation>> fetchStations() async {
     try {
       final response = await http.get(Uri.parse("$_baseUrl?action=stations"));
@@ -25,7 +23,6 @@ class MetroApi {
     }
   }
 
-  // 2. Tablo: Seçilen İstasyonun Sefer Saatlerini Çek
   Future<List<MetroSchedule>> fetchSchedules(int stationId) async {
     try {
       final response = await http.get(Uri.parse("$_baseUrl?action=schedules&station_id=$stationId"));

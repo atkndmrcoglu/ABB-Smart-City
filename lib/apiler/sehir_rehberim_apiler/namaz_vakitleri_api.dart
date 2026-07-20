@@ -35,8 +35,6 @@ class NamazService {
     }
   }
 }
-
-// 2. ADIM: Eksik olan Model Sınıfın (Bunu eklediğinde hata çözülecek)
 class NamazVakti {
   final String saat;
   final String vakit;

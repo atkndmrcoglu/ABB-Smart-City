@@ -1,0 +1,28 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:smartcity/models/sehir_rehberim/konaklama_model.dart';
+
+class KonaklamaApi {
+  final String _baseUrl = "http://172.20.10.10/api/konaklama.php?action=all_places";
+
+  Future<List<KonaklamaModel>> fetchall_places() async {
+    try {
+      final response = await http.get(Uri.parse(_baseUrl));
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> decodedData = json.decode(response.body);
+        
+        if (decodedData.containsKey('data')) {
+          final List<dynamic> rawList = decodedData['data'];
+          return rawList.map((item) => KonaklamaModel.fromJson(item)).toList();
+        } else {
+          throw Exception("API 'data' anahtarı içermiyor.");
+        }
+      } else {
+        throw Exception("Sunucu hatası: ${response.statusCode}");
+      }
+    } catch (e) {
+      throw Exception("Bağlantı hatası: $e");
+    }
+  }
+}
