@@ -1,9 +1,6 @@
-// ignore_for_file: deprecated_member_use, avoid_print
-
+// ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
-import 'package:smartcity/apiler/istek_sikayet_api.dart'; 
-import 'dart:convert';
-import 'package:flutter/services.dart'; 
+import 'package:smartcity/apiler/ihbar_sikayet_apiler/istek_sikayet_api.dart';
 import 'package:smartcity/models/ihbar_sikayet/istek_sikayet_model.dart';
 
 class IstekSikayet extends StatefulWidget {

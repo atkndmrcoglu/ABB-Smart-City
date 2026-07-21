@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:smartcity/models/sehir_rehberim/sinema_tiyatro_model.dart';
 
-class KulturSanatApi {
+class SinemaTiyatroApi {
   final String _baseUrl = "http://172.20.10.10/api/sinema_tiyatro.php?action=all_places";
 
-  Future<List<SinemaTiyatroModel>> fetchKulturSanatYerleri() async {
+  Future<List<SinemaTiyatroModel>> fetchAllPlaces() async {
     try {
       final response = await http.get(Uri.parse(_baseUrl));
 

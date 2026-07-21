@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:smartcity/models/sehir_rehberim/devlet_daireleri_model.dart';
 
-class KulturSanatApi {
+class DevletDaireleriApi {
   final String _baseUrl = "http://172.20.10.10/api/devlet_daireleri.php?action=all_places";
 
-  Future<List<DevletDaireleriModel>> fetchall_places() async {
+  Future<List<DevletDaireleriModel>> fetchAllPlaces() async {
     try {
       final response = await http.get(Uri.parse(_baseUrl));
 

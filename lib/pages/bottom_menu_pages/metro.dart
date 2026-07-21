@@ -181,7 +181,6 @@ class _MetroState extends State<Metro> {
     return Scaffold(
       body: Stack(
         children: [
-          // 1. HARİTA KATMANI
           FlutterMap(
             mapController: _mapController,
             options: MapOptions(
@@ -247,7 +246,6 @@ class _MetroState extends State<Metro> {
             ],
           ),
 
-          // 2. ÜST BİLGİ BARI
           Positioned(
             top: 55,
             left: 70,
@@ -294,7 +292,6 @@ class _MetroState extends State<Metro> {
             ),
           ),
 
-          // 3. SOL PANEL
           AnimatedPositioned(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOutCubic,
@@ -359,7 +356,6 @@ class _MetroState extends State<Metro> {
             ),
           ),
 
-          // 4. SOL YÜZEN BUTONLAR (Yan menü açıldığında gizlenmesi sağlandı)
           if (!_solPanelAcik)
             Positioned(
               top: 120,
@@ -395,13 +391,11 @@ class _MetroState extends State<Metro> {
     );
   }
 
-  // 🕒 SEFER DETAY BOTTOM SHEET
   void _showSeferDetayBottomSheet(MetroStation istasyon) {
-    // Ham yönleri çekiyoruz
+
     List<String> yonler = _secilenHatSeferleri.map((s) => s.directionType).toSet().toList();
     if (yonler.isEmpty) yonler.add("Bilinmeyen Yön");
 
-    // 🔀 SABİT SIRALAMA MANTIĞI: Her zaman önce 'H' (Hastane), sonra 'A' (Akıncılar) gelmesini sağlıyoruz
     yonler.sort((a, b) {
       final temizA = a.trim().toUpperCase();
       final temizB = b.trim().toUpperCase();

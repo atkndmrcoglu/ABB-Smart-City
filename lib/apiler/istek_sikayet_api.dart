@@ -1,7 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 
-class RequestService {
+class RequestServi {
   // BASE URL'inizi buraya tanımlayın (örn: https://api.belediye.gov.tr veya local test için http://10.0.2.2:8000)
   static const String _baseUrl = "https://YOUR_BACKEND_API_ENDPOINT.com";
 

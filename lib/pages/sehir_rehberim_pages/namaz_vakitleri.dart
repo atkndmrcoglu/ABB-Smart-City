@@ -1,4 +1,3 @@
-// ignore_for_file: avoid_print
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -18,7 +17,7 @@ class Namaz extends StatefulWidget {
 
 class _NamazState extends State<Namaz> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final namaz_api.NamazService _namazService = namaz_api.NamazService();
+  final namaz_api.NamazApi _namazService = namaz_api.NamazApi();
   final MapController _mapController = MapController();
   final LatLng adanaMerkez = const LatLng(36.9931, 35.3256);
 
@@ -29,8 +28,7 @@ class _NamazState extends State<Namaz> with SingleTickerProviderStateMixin {
   String _kalanSureYazisi = "Yükleniyor...";
   String _hedefVakitYazisi = "Ezanına";
 
-  // Cami API verileri için gerekli değişkenler
-  final CamiService _camiService = CamiService();
+  final CamiApi _camiService = CamiApi();
   late PageController _pageController;
   List<CamiModel> _camiListesi = [];
   bool _isCamilerLoading = true;
@@ -394,7 +392,6 @@ class _NamazState extends State<Namaz> with SingleTickerProviderStateMixin {
 
     return Stack(
       children: [
-        // 1. HARİTA KATMANI
         FlutterMap(
           mapController: _mapController,
           options: MapOptions(
@@ -407,7 +404,6 @@ class _NamazState extends State<Namaz> with SingleTickerProviderStateMixin {
               subdomains: const ['a', 'b', 'c', 'd'],
               userAgentPackageName: 'com.belediye.akillisehir',
             ),
-            // API'den gelen dinamik Marker'lar
             MarkerLayer(
               markers: _camiListesi.asMap().entries.map((entry) {
                 int idx = entry.key;
@@ -442,7 +438,6 @@ class _NamazState extends State<Namaz> with SingleTickerProviderStateMixin {
           ],
         ),
         
-        // 2. ALTTAKİ KAYDIRILABİLİR CAMİ KARTLARI (PAGEVIEW)
         Positioned(
           bottom: 20,
           left: 0,

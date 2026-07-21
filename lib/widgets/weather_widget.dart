@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
-// open_weather takma adıyla import ederek isim çakışmalarını engelliyoruz
 import 'package:weather/weather.dart' as open_weather; 
-// Kendi yazdığımız api dosyasını import ediyoruz
 import 'package:smartcity/apiler/weather_api.dart'; 
-
-/// Adana'nın hava durumunu çeker ve yükleme durumuna göre dairesel popup gösterir.
 void showCircularWeatherPopup(BuildContext context) {
   final WeatherApi weatherApi = WeatherApi();
 
@@ -41,10 +37,7 @@ void showCircularWeatherPopup(BuildContext context) {
                     ),
                   );
                 }
-
-                // 2. Durum: Hata oluştu (İnternet yoksa veya API'den veri dönmediyse)
-                if (snapshot.hasError || !snapshot.hasData) {
-                  print("WEATHER API HATASI: ${snapshot.error}"); 
+                if (snapshot.hasError || !snapshot.hasData) { 
 
                   return Padding(
                     padding: const EdgeInsets.all(24.0),
@@ -67,8 +60,6 @@ void showCircularWeatherPopup(BuildContext context) {
                     ),
                   );
                 }
-
-                // 3. Durum: Veri başarıyla geldi (API tarafında filtrelenmiş temiz 5 gün)
                 final List<open_weather.Weather> uniqueDaysForecast = snapshot.data!.weekly;
 
                 return PageView.builder(
@@ -88,14 +79,12 @@ void showCircularWeatherPopup(BuildContext context) {
   );
 }
 
-/// Popup içindeki her bir gün sayfasını çizen widget.
 Widget buildCircularWeatherPage(BuildContext context, open_weather.Weather weather, int dayNumber) {
   final double temp = weather.temperature?.celsius ?? 0.0;
   final double feelsLike = weather.tempFeelsLike?.celsius ?? 0.0;
   final String cityName = weather.areaName ?? "Adana";
   final String condition = weather.weatherDescription ?? "Açık";
 
-  // Tarihe göre dinamik gün ismini hesaplayan yardımcı fonksiyon
   String getDayTitle(DateTime? date, int dayNum) {
     if (dayNum == 1) return "BUGÜN";
     if (dayNum == 2) return "YARIN";
@@ -124,11 +113,10 @@ Widget buildCircularWeatherPage(BuildContext context, open_weather.Weather weath
   final String dayTitle = getDayTitle(weather.date, dayNumber);
 
   return Padding(
-    padding: const EdgeInsets.all(32.0), // Atakan Demircioğlu Tarafından Adana Büyükşehir Belediyesi Bilgi İşlem Dairesi Başkanlığı için 2026 Yılında Geliştirilmiştir
+    padding: const EdgeInsets.all(32.0),                                                                                                                                      // Atakan Demircioğlu Tarafından Adana Büyükşehir Belediyesi Bilgi İşlem Dairesi Başkanlığı için 2026 Yılında Geliştirilmiştir
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // Dinamik olarak hesaplanan gün başlığı (BUGÜN, YARIN, CUMA vb.)
         Text(
           dayTitle,
           style: const TextStyle(
@@ -167,7 +155,6 @@ Widget buildCircularWeatherPage(BuildContext context, open_weather.Weather weath
           ],
         ),
         const SizedBox(height: 12),
-        // Sayfa Gösterge Noktaları
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(5, (dotIndex) {

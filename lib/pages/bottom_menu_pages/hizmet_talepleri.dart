@@ -99,13 +99,11 @@ class _HizmetTalepleriState extends State<HizmetTalepleri> {
             childAspectRatio: 0.95,
           ),
           itemBuilder: (context, index) {
-            // 2. DÜZELTME: listenin o anki elemanını bir değişkene atadık
             final Map<String, dynamic> currentItem = items[index];
             final String title = (currentItem['title'] ?? 'Uygulama').toString();
             final String logo = (currentItem['logo'] ?? '').toString();
 
             return InkWell(
-              // 3. DÜZELTME: Tanımladığımız currentItem'ı fonksiyona gönderdik
               onTap: () => _onItemTap(context, currentItem),
               borderRadius: BorderRadius.circular(16),
               child: Container(

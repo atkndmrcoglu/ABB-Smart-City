@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -14,7 +15,7 @@ class Ulasim extends StatefulWidget {
 
 class _UlasimState extends State<Ulasim> {
   final MapController _mapController = MapController();
-  final UlasimService _ulasimService = UlasimService();
+  final UlasimApi _ulasimService = UlasimApi();
 
   List<LatLng> _guzergahCizgisi = [];
   List<Durak> _duraklar = [];
@@ -154,9 +155,7 @@ class _UlasimState extends State<Ulasim> {
         if (rotalar.isNotEmpty) {
           koordinatListesi = rotalar.map((r) => r.koordinat).toList();
         }
-      } catch (e) {
-        print("Rota API hatası: $e");
-      }
+      } finally{}
 
       if (koordinatListesi.isEmpty && gelenDuraklar.isNotEmpty) {
         koordinatListesi = gelenDuraklar.map((d) => d.koordinat).toList();
@@ -724,8 +723,8 @@ class _UlasimState extends State<Ulasim> {
             "kalkisSaatleri": kalkisSaatleri,
           });
         }
-      } catch (e) {
-        print('Hat bilgisi alınamadı ($hatNo): $e');
+      } finally {
+
       }
     }
 
@@ -1094,7 +1093,6 @@ class _UlasimState extends State<Ulasim> {
       itemCount: yaklasanAraclar.length,
       itemBuilder: (context, index) {
         final arac = yaklasanAraclar[index];
-        // ÇÖZÜM: Null-Safety koruması eklendi.
         final saatler = (arac['kalkisSaatleri'] as List<String>?) ?? [];
         
         return GestureDetector(

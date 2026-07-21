@@ -5,7 +5,7 @@ import 'package:smartcity/models/sehir_rehberim/spor_model.dart';
 class SporApi {
   final String _baseUrl = "http://172.20.10.10/api/spor.php?action=all_places";
 
-  Future<List<SporModel>> fetchall_places() async {
+  Future<List<SporModel>> fetchAllPlaces() async {
     try {
       final response = await http.get(Uri.parse(_baseUrl));
 

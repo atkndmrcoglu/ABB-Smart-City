@@ -1,4 +1,3 @@
-// ignore_for_file: avoid_print
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -17,8 +16,6 @@ class EgitimUniversiteler extends StatefulWidget {
 
 class _EgitimUniversitelerState extends State<EgitimUniversiteler> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-
-  // 1. API Servislerimizi burada tanımlıyoruz
   final uni_api.UniApi _universiteApi = uni_api.UniApi();
   final egitim_api.EgitimApi _egitimKurumlariApi = egitim_api.EgitimApi();
 
@@ -72,21 +69,17 @@ class _EgitimUniversitelerState extends State<EgitimUniversiteler> with SingleTi
       body: TabBarView(
         controller: _tabController,
         children: [
-          // 1. SEKME: ÜNİVERSİTELER
           HaritaSekmesi<UniversitiesModel>(
-            // 2. API fonksiyonunu buraya bağlıyoruz
-            veriGetirmeFonksiyonu: _universiteApi.fetchall_places, 
+            veriGetirmeFonksiyonu: _universiteApi.fetchAllPlaces, 
             ikonData: Icons.account_balance,
             ikonRengi: Colors.blue.shade700,
             getName: (model) => model.name,
             getLat: (model) => model.latitude,
             getLon: (model) => model.longitude,
           ),
-          
-          // 2. SEKME: EĞİTİM KURUMLARI
+
           HaritaSekmesi<EgitimKurumlariModel>(
-            // 3. API fonksiyonunu buraya bağlıyoruz
-            veriGetirmeFonksiyonu: _egitimKurumlariApi.fetchall_places, 
+            veriGetirmeFonksiyonu: _egitimKurumlariApi.fetchAllPlaces, 
             ikonData: Icons.school,
             ikonRengi: Colors.orange.shade700,
             getName: (model) => model.name,
@@ -99,9 +92,6 @@ class _EgitimUniversitelerState extends State<EgitimUniversiteler> with SingleTi
   }
 }
 
-// -----------------------------------------------------------------------------
-// JENERİK (<T>) ALT WIDGET: HER İKİ MODELLE DE ÇALIŞABİLEN HARİTA VE KART YAPISI
-// -----------------------------------------------------------------------------
 class HaritaSekmesi<T> extends StatefulWidget {
   final Future<List<T>> Function() veriGetirmeFonksiyonu;
   final IconData ikonData;
@@ -131,7 +121,7 @@ class _HaritaSekmesiState<T> extends State<HaritaSekmesi<T>> {
   
   List<T> _veriListesi = [];
   bool _isLoading = true;
-  String? _errorMessage; // Hata durumunda ekranda göstermek için
+  String? _errorMessage;
   int _seciliIndex = 0;
 
   @override
@@ -207,7 +197,6 @@ class _HaritaSekmesiState<T> extends State<HaritaSekmesi<T>> {
       );
     }
     
-    // Hata varsa ekranda kırmızı metinle sebebini gösteriyoruz
     if (_errorMessage != null) {
       return Center(
         child: Padding(
@@ -232,7 +221,6 @@ class _HaritaSekmesiState<T> extends State<HaritaSekmesi<T>> {
 
     return Stack(
       children: [
-        // 1. HARİTA KATMANI
         FlutterMap(
           mapController: _mapController,
           options: MapOptions(
@@ -281,8 +269,7 @@ class _HaritaSekmesiState<T> extends State<HaritaSekmesi<T>> {
             ),
           ],
         ),
-        
-        // 2. ALT KISIM DİNAMİK KARTLAR (PageView)
+
         Positioned(
           bottom: 20,
           left: 0,

@@ -1,18 +1,18 @@
-class HalkEkmekBufe {
+class HalkEkmekModel{
   final String kod;
   final String adres;
   final double lat;
   final double lon;
 
-  HalkEkmekBufe({
+  HalkEkmekModel({
     required this.kod,
     required this.adres,
     required this.lat,
     required this.lon,
   });
 
-  factory HalkEkmekBufe.fromJson(Map<String, dynamic> json) {
-    return HalkEkmekBufe(
+  factory HalkEkmekModel.fromJson(Map<String, dynamic> json) {
+    return HalkEkmekModel(
       kod: json['isim'] ?? 'Halk Ekmek Büfesi',
       adres: json['adres'] ?? 'Adres bilgisi yok',
       lat: double.parse(json['lat'].toString()),

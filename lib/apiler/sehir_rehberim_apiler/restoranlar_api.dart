@@ -5,7 +5,7 @@ import 'package:smartcity/models/sehir_rehberim/restoranlar_model.dart';
 class RestoranlarApi {
   final String _baseUrl = "http://172.20.10.10/api/restoranlar.php?action=all_places";
 
-  Future<List<RestoranlarModel>> fetchall_places() async {
+  Future<List<RestoranlarModel>> fetchAllPlaces() async {
     try {
       final response = await http.get(Uri.parse(_baseUrl));
 

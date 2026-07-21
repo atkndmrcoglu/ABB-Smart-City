@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -21,8 +19,8 @@ class _HalkEkmekNoktalariState extends State<HalkEkmekNoktalari> {
   bool _yukleniyor = true;
   bool _haritaHazir = false; 
 
-  final _halkEkmekService = HalkEkmekService(); 
-  List<HalkEkmekBufe> _halkEkmekBufeleri = [];
+  final _halkEkmekApi = HalkEkmekApi(); 
+  List<HalkEkmekModel> _halkEkmekModel = [];
 
   @override
   void initState() {
@@ -61,15 +59,14 @@ class _HalkEkmekNoktalariState extends State<HalkEkmekNoktalari> {
     if (!mounted) return;
     setState(() => _yukleniyor = true);
     try {
-      final bufeler = await _halkEkmekService.getTumBufeler();
+      final bufeler = await _halkEkmekApi.getTumBufeler();
 
       if (mounted) {
         setState(() {
-          _halkEkmekBufeleri = bufeler;
+          _halkEkmekModel = bufeler;
           _yukleniyor = false;
         });
 
-        // Gelen listeden ("100. YIL-1" gibi) ilk büfenin koordinatını alıp haritayı oraya uçuruyoruz
         if (bufeler.isNotEmpty) {
           final firstBufeCenter = LatLng(bufeler.first.lat, bufeler.first.lon);
           setState(() {
@@ -82,16 +79,13 @@ class _HalkEkmekNoktalariState extends State<HalkEkmekNoktalari> {
         }
       }
     } catch (e) {
-      print("Büfeler haritaya yüklenirken hata oluştu: $e");
       if (mounted) {
         setState(() => _yukleniyor = false);
       }
     }
   }
 
-  /// Seçilen büfeye dış harita uygulamaları üzerinden yol tarifi açan fonksiyon
   Future<void> _yolTarifiBaslat(double lat, double lon) async {
-    // Statik url yerine tıklanan büfenin gerçek enlem boylamını dinamik gömüyoruz
     final String googleMapsUrl = "https://www.google.com/maps/search/?api=1&query=$lat,$lon";
     final Uri url = Uri.parse(googleMapsUrl);
 
@@ -106,17 +100,19 @@ class _HalkEkmekNoktalariState extends State<HalkEkmekNoktalari> {
     }
   }
 
-  /// Haritadaki iğneye (Marker) tıklanınca detay kartı açan alt pencere
-  void _bufeBilgisiGoster(BuildContext context, HalkEkmekBufe bufe) {
+  void _bufeBilgisiGoster(BuildContext context, HalkEkmekModel bufe) {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (context) {
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
@@ -124,7 +120,7 @@ class _HalkEkmekNoktalariState extends State<HalkEkmekNoktalari> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        bufe.kod, // JSON'daki "kod" alanı başlık yapıldı (Örn: 100. YIL-1)
+                        bufe.kod,
                         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -132,7 +128,7 @@ class _HalkEkmekNoktalariState extends State<HalkEkmekNoktalari> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  bufe.adres, // JSON'daki çözümlenmiş net Türkçe adres bilgisi
+                  bufe.adres,
                   style: TextStyle(fontSize: 14, color: Colors.grey[700]),
                 ),
                 const SizedBox(height: 20),
@@ -193,8 +189,7 @@ class _HalkEkmekNoktalariState extends State<HalkEkmekNoktalari> {
                 userAgentPackageName: 'com.belediye.smartcity',
               ),
               MarkerLayer(
-                // Veritabanındaki tüm büfeleri döngüyle haritaya yerleştiriyoruz
-                markers: _halkEkmekBufeleri.map((bufe) {
+                markers: _halkEkmekModel.map((bufe) {
                   return Marker(
                     point: LatLng(bufe.lat, bufe.lon),
                     width: 45,
@@ -217,10 +212,9 @@ class _HalkEkmekNoktalariState extends State<HalkEkmekNoktalari> {
               ),
             ],
           ),
-          // Arka planda veriler yüklenirken haritanın üzerinde dönen hafif karartmalı loading ekranı
           if (_yukleniyor)
             Container(
-              color: Colors.black.withValues(alpha:0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               child: const Center(
                 child: CircularProgressIndicator(),
               ),

@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/wifi_noktasi_model.dart';
 
-class WifiNoktasiService {
+class WifiNoktasiApi {
   final String baseUrl = "http://172.20.10.10/api/wifi_noktalari.php";
 
   Future<List<WifiNoktasi>> getTumWifiNoktalari() async {

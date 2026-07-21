@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/ulasim_model.dart';
 
-class UlasimService {
+class UlasimApi {
   final String baseUrl = "http://172.20.10.10/api/ulasim.php";
 
   Future<List<Hat>> getTumHatlar() async {
@@ -11,14 +11,11 @@ class UlasimService {
     
     try {
       final response = await http.get(Uri.parse(fullUrl));
-      print('Hat URL: $fullUrl');
-      print('Hat Status: ${response.statusCode}');
       
       if (response.statusCode == 200) {
         final dynamic jsonData = json.decode(response.body);
         if (jsonData is Map<String, dynamic>) {
           if (jsonData.containsKey('error')) {
-            print('API Hatası: ${jsonData['error']}');
             return [];
           }
           if (jsonData.containsKey('data')) {
@@ -29,13 +26,10 @@ class UlasimService {
         }
         
         if (jsonData is List) {
-          print('Hat Sayısı: ${jsonData.length}');
           return jsonData.map((json) => Hat.fromJson(json)).toList();
         }
       }
-    } catch (e) {
-      print("--- [API HATA] Hat listesi hatası: $e ---");
-    }
+    } finally{}
     return [];
   }
 
@@ -44,15 +38,12 @@ class UlasimService {
     
     try {
       final response = await http.get(Uri.parse(fullUrl));
-      print('Rota URL: $fullUrl');
-      print('Rota Status: ${response.statusCode}');
       
       if (response.statusCode == 200) {
         final dynamic jsonData = json.decode(response.body);
         
         if (jsonData is Map<String, dynamic>) {
           if (jsonData.containsKey('error')) {
-            print('API Hatası: ${jsonData['error']}');
             return [];
           }
           if (jsonData.containsKey('data')) {
@@ -66,9 +57,7 @@ class UlasimService {
           return jsonData.map((json) => RotaNoktasi.fromJson(json)).toList();
         }
       }
-    } catch (e) {
-      print("--- [API HATA] Rota çizgi hatası: $e ---");
-    }
+    }finally{}
     return [];
   }
 
@@ -77,15 +66,12 @@ class UlasimService {
 
     try {
       final response = await http.get(Uri.parse(fullUrl));
-      print('Durak URL: $fullUrl');
-      print('Durak Status: ${response.statusCode}');
       
       if (response.statusCode == 200) {
         final dynamic jsonData = json.decode(response.body);
         
         if (jsonData is Map<String, dynamic>) {
           if (jsonData.containsKey('error')) {
-            print('API Hatası: ${jsonData['error']}');
             return [];
           }
           if (jsonData.containsKey('data')) {
@@ -99,9 +85,7 @@ class UlasimService {
           return jsonData.map((json) => Durak.fromJson(json)).toList();
         }
       }
-    } catch (e) {
-      print("--- [API HATA] Durak çekme hatası: $e ---");
-    }
+    }finally{}
     return [];
   }
 
@@ -110,15 +94,12 @@ class UlasimService {
 
     try {
       final response = await http.get(Uri.parse(fullUrl));
-      print('Tüm Duraklar URL: $fullUrl');
-      print('Tüm Duraklar Status: ${response.statusCode}');
       
       if (response.statusCode == 200) {
         final dynamic jsonData = json.decode(response.body);
         
         if (jsonData is Map<String, dynamic>) {
           if (jsonData.containsKey('error')) {
-            print('API Hatası: ${jsonData['error']}');
             return [];
           }
           if (jsonData.containsKey('data')) {
@@ -132,9 +113,7 @@ class UlasimService {
           return jsonData.map((json) => Durak.fromJson(json)).toList();
         }
       }
-    } catch (e) {
-      print("--- [API HATA] Tüm duraklar hatası: $e ---");
-    }
+    } finally{}
     return [];
   }
 
@@ -143,9 +122,6 @@ class UlasimService {
 
     try {
       final response = await http.get(Uri.parse(fullUrl));
-      print('Durak Hatları URL: $fullUrl');
-      print('Durak Hatları Status: ${response.statusCode}');
-      print('Durak Hatları Body: ${response.body}');
 
       if (response.statusCode == 200) {
         final dynamic jsonData = json.decode(response.body);
@@ -163,29 +139,21 @@ class UlasimService {
               .where((item) => item.isNotEmpty)
               .toList();
         }
-        
-        print('Durak $stopId için ${hatlar.length} aktif hat bulundu: $hatlar');
         return hatlar;
       }
-    } catch (e) {
-      print("--- [API HATA] Durak hatları hatası: $e ---");
-    }
+    } finally{}
     return [];
   }
   Future<Map<String, String>?> getHatDetay(String hatNo) async {
     final String fullUrl = '$baseUrl?action=route_details&id=$hatNo';
 
     try {
-      final response = await http.get(Uri.parse(fullUrl));
-      print('Hat Detay URL: $fullUrl');
-      print('Hat Detay Status: ${response.statusCode}');
-      
+      final response = await http.get(Uri.parse(fullUrl));      
       if (response.statusCode == 200) {
         final dynamic jsonData = json.decode(response.body);
         
         if (jsonData is Map<String, dynamic>) {
           if (jsonData.containsKey('error')) {
-            print('API Hatası: ${jsonData['error']}');
             return null;
           }
           
@@ -213,9 +181,7 @@ class UlasimService {
           };
         }
       }
-    } catch (e) {
-      print("--- [API HATA] Hat detay hatası: $e ---");
-    }
+    }finally{}
     return null;
   }
 
@@ -224,15 +190,12 @@ class UlasimService {
 
     try {
       final response = await http.get(Uri.parse(fullUrl));
-      print('Yaklaşan Araç URL: $fullUrl');
-      print('Yaklaşan Araç Status: ${response.statusCode}');
       
       if (response.statusCode == 200) {
         final dynamic jsonData = json.decode(response.body);
         
         if (jsonData is Map<String, dynamic>) {
           if (jsonData.containsKey('error')) {
-            print('API Hatası: ${jsonData['error']}');
             return null;
           }
           
@@ -260,9 +223,7 @@ class UlasimService {
           };
         }
       }
-    } catch (e) {
-      print("--- [API HATA] Yaklaşan araç hatası: $e ---");
-    }
+    } finally{}
     return null;
   }
 
@@ -271,8 +232,6 @@ class UlasimService {
 
     try {
       final response = await http.get(Uri.parse(fullUrl));
-      print('Kalkış Saatleri URL: $fullUrl');
-      print('Kalkış Saatleri Status: ${response.statusCode}');
       
       if (response.statusCode == 200) {
         final dynamic jsonData = json.decode(response.body);
@@ -285,7 +244,6 @@ class UlasimService {
               .toList();
         } else if (jsonData is Map<String, dynamic>) {
           if (jsonData.containsKey('error')) {
-            print('API Hatası: ${jsonData['error']}');
             return [];
           }
           
@@ -299,13 +257,9 @@ class UlasimService {
             }
           }
         }
-        
-        print('Hat $hatNo için ${saatler.length} kalkış saati bulundu');
         return saatler;
       }
-    } catch (e) {
-      print("--- [API HATA] Kalkış saatleri hatası: $e ---");
-    }
+    }finally{}
     return [];
   }
 }

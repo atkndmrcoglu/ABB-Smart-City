@@ -1,4 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:smartcity/widgets/side_menu.dart';
 import 'package:smartcity/widgets/bottom_menu.dart'; 
@@ -46,7 +45,6 @@ class _HOMEPAGEState extends State<HOMEPAGE> {
   void _startImageSlideshow() {
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted && _pageController.hasClients) {
-        // Bir sonraki resmin indeksini hesaplıyoruz
         final nextIndex = (_currentImageIndex + 1) % _backgroundImages.length;
         _pageController.animateToPage(
           nextIndex,

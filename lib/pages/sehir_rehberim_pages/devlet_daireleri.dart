@@ -1,10 +1,7 @@
-// ignore_for_file: avoid_print
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-// Sizin dosya yollarınıza göre importlar
 import 'package:smartcity/models/sehir_rehberim/devlet_daireleri_model.dart';
 import 'package:smartcity/apiler/sehir_rehberim_apiler/devlet_daireleri_api.dart';
 
@@ -17,20 +14,19 @@ class DevletDaireleri extends StatefulWidget {
 
 class _DevletDaireleriState extends State<DevletDaireleri> {
   final MapController _mapController = MapController();
-  final KulturSanatApi _apiService = KulturSanatApi(); // Sizin yazdığınız API sınıfı
-  final LatLng adanaMerkez = const LatLng(36.9931, 35.3256); // Başlangıç konumu (Gerekirse güncelleyebilirsiniz)
+  final DevletDaireleriApi _apiService = DevletDaireleriApi();
+  final LatLng adanaMerkez = const LatLng(36.9931, 35.3256);
   
   late Future<List<DevletDaireleriModel>> _futureYerler;
 
   @override
   void initState() {
     super.initState();
-    // API'deki metodunuzu çağırıyoruz
-    _futureYerler = _apiService.fetchall_places();
+    _futureYerler = _apiService.fetchAllPlaces();
   }
 
   void _haritayiOdakla(double lat, double lon) {
-    _mapController.move(LatLng(lat, lon), 14.5); // Yakınlaşma seviyesini biraz artırdım (14.5)
+    _mapController.move(LatLng(lat, lon), 14.5);
   }
 
   Future<void> _yolTarifiBaslat(double lat, double lon) async {
@@ -67,7 +63,7 @@ class _DevletDaireleriState extends State<DevletDaireleri> {
           ),
         ),
         title: const Text(
-          'Devlet Daireleri', // Başlığı güncelledim
+          'Devlet Daireleri',
           style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.bold)
         ),
         centerTitle: true,
@@ -91,7 +87,7 @@ class _DevletDaireleriState extends State<DevletDaireleri> {
                   ElevatedButton(
                     onPressed: () {
                       setState(() {
-                        _futureYerler = _apiService.fetchall_places();
+                        _futureYerler = _apiService.fetchAllPlaces();
                       });
                     },
                     child: const Text('Tekrar Dene'),
@@ -109,11 +105,9 @@ class _DevletDaireleriState extends State<DevletDaireleri> {
 
           return Stack(
             children: [
-              // 1. HARİTA KATMANI
               FlutterMap(
                 mapController: _mapController,
                 options: MapOptions(
-                  // Eğer liste boş değilse harita ilk açıldığında ilk devlet dairesine odaklansın
                   initialCenter: LatLng(listem.first.latitude, listem.first.longitude), 
                   initialZoom: 13.0
                 ),
@@ -139,13 +133,12 @@ class _DevletDaireleriState extends State<DevletDaireleri> {
                 ],
               ),
               
-              // 2. ALTTAKİ KAYDIRILABİLİR KARTLAR
               Positioned(
                 bottom: 20,
                 left: 0,
                 right: 0,
                 child: SizedBox(
-                  height: 140, // Sadece isim olduğu için yüksekliği düşürdüm (270'ten 140'a)
+                  height: 140,
                   child: PageView.builder(
                     controller: PageController(viewportFraction: 0.88),
                     itemCount: listem.length,
@@ -167,7 +160,6 @@ class _DevletDaireleriState extends State<DevletDaireleri> {
     );
   }
 
-  // Modelinize göre uyarlanmış Bilgi Kartı
   Widget _buildGenelBilgiKarti(DevletDaireleriModel data) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -196,7 +188,7 @@ class _DevletDaireleriState extends State<DevletDaireleri> {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  data.name, // Modelinizdeki 'name' verisini kullanıyoruz
+                  data.name,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -204,7 +196,7 @@ class _DevletDaireleriState extends State<DevletDaireleri> {
               ),
             ],
           ),
-          const Spacer(), // Boşluğu otomatik ayarlar
+          const Spacer(),
           SizedBox(
             width: double.infinity,
             height: 44,

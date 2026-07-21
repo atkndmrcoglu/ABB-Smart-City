@@ -1,4 +1,3 @@
-// ignore_for_file: avoid_print
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -16,7 +15,7 @@ class Bankalar extends StatefulWidget {
 
 class _BankalarState extends State<Bankalar> {
   final MapController _mapController = MapController();
-  final BankalarService _apiService = BankalarService();
+  final BankalarApi _apiService = BankalarApi();
   final LatLng adanaMerkez = const LatLng(36.9931, 35.3256);
   late PageController _pageController;
   
@@ -131,7 +130,6 @@ class _BankalarState extends State<Bankalar> {
 
           return Stack(
             children: [
-              // 1. HARİTA KATMANI
               FlutterMap(
                 mapController: _mapController,
                 options: MapOptions(
@@ -178,13 +176,12 @@ class _BankalarState extends State<Bankalar> {
                 ],
               ),
 
-              // 2. ALTTAKİ BİLGİ KARTLARI (PAGEVIEW)
               Positioned(
                 bottom: 20,
                 left: 0,
                 right: 0,
                 child: SizedBox(
-                  height: 150, // Detay rozetleri olmadığı için yüksekliği ideal seviyeye çektik
+                  height: 150,
                   child: PageView.builder(
                     controller: _pageController,
                     itemCount: _bankalistesi.length,

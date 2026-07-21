@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-class NamazService {
+class NamazApi {
   static const String _baseUrl = 'https://api.collectapi.com/pray/all';
   static const String _apiKey = 'apikey 7tL19WvowcXsMSYg2urBpJ:3qgax2KqoUvckr8MOsfOk4'; 
 

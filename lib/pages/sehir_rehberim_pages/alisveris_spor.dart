@@ -1,4 +1,3 @@
-// ignore_for_file: avoid_print
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -70,10 +69,9 @@ class _AlisverisSporState extends State<AlisverisSpor> with SingleTickerProvider
       body: TabBarView(
         controller: _tabController,
         children: [
-          // 1. SEKME: ALIŞVERİŞ MERKEZLERİ
           HaritaSekmesi<AlisverisMerkezleriModel>(
-            veriGetirmeFonksiyonu: _alisverisApi.fetchall_places, 
-            ikonData: Icons.local_mall, // Alışveriş çantası ikonu
+            veriGetirmeFonksiyonu: _alisverisApi.fetchAllPlaces, 
+            ikonData: Icons.local_mall,
             ikonRengi: Colors.purple.shade700,
             getName: (model) => model.name,
             getLat: (model) => model.latitude,
@@ -81,7 +79,7 @@ class _AlisverisSporState extends State<AlisverisSpor> with SingleTickerProvider
           ),
           
           HaritaSekmesi<SporModel>(
-            veriGetirmeFonksiyonu: _sporApi.fetchall_places, 
+            veriGetirmeFonksiyonu: _sporApi.fetchAllPlaces, 
             ikonData: Icons.sports_soccer, // Spor ikonu
             ikonRengi: Colors.green.shade700,
             getName: (model) => "${model.name} (${model.sport})", 

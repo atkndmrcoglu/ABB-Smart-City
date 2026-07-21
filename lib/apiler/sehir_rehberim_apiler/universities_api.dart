@@ -5,7 +5,7 @@ import 'package:smartcity/models/sehir_rehberim/universities_model.dart';
 class UniApi {
   final String _baseUrl = "http://172.20.10.10/api/universities.php?action=all_places";
 
-  Future<List<UniversitiesModel>> fetchall_places() async {
+  Future<List<UniversitiesModel>> fetchAllPlaces() async {
     try {
       final response = await http.get(Uri.parse(_baseUrl));
 

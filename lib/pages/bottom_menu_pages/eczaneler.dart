@@ -38,7 +38,6 @@ class _EczanelerState extends State<Eczaneler> {
       _yukleniyor = false;
     });
 
-    // Veri geldiyse haritayı ilk eczaneye odakla
     if (_eczaneler.isNotEmpty) {
       _haritayiOdakla(_eczaneler[0].lat, _eczaneler[0].lon);
     }

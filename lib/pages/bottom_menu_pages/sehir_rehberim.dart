@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:smartcity/pages/sehir_rehberim_pages/alisveris_spor.dart';
 import 'package:smartcity/pages/sehir_rehberim_pages/bankalar.dart';
 import 'package:smartcity/pages/sehir_rehberim_pages/devlet_daireleri.dart';
 import 'package:smartcity/pages/sehir_rehberim_pages/namaz_vakitleri.dart';
+import 'package:smartcity/pages/sehir_rehberim_pages/restoran_konaklama.dart';
 import 'package:smartcity/pages/sehir_rehberim_pages/sinemalar_tiyatrolar.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:smartcity/pages/sehir_rehberim_pages/kultur_sanat.dart';
@@ -29,20 +31,22 @@ class _SehirRehberimState extends State<SehirRehberim> {
     {
       'title': 'RESTORAN/KONAKLAMA',
       'logo': 'assets/sehir_rehberim_images/restoran_konaklama.png',
+      'page': () => RestoranlarVeKonaklama(),
     },
     {
       'title': 'SİNEMALAR/TİYATROLAR',
       'logo': 'assets/sehir_rehberim_images/sinemalar_tiyatrolar.png',
-      'page': () =>const SinemaTiyatro(),
+      'page': () => SinemaTiyatro(),
     },
     {
       'title': 'ALIŞVERİŞ/SPOR',
       'logo': 'assets/sehir_rehberim_images/alisveris_spor.png',
+      'page': () => AlisverisSpor(),
     },
     {
       'title': 'KÜLTÜR SANAT',
       'logo': 'assets/sehir_rehberim_images/kultur_sanat.png',
-      'page': () =>const KulturSanat(),
+      'page': () => KulturSanat(),
     },
     {
       'title': 'EĞİTİM/ÜNİVERSİTELER',

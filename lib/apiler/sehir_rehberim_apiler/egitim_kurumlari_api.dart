@@ -5,7 +5,7 @@ import 'package:smartcity/models/sehir_rehberim/egitim_kurumlari_model.dart';
 class EgitimApi {
   final String _baseUrl = "http://172.20.10.10/api/egitim_kurumlari.php?action=all_places";
 
-  Future<List<EgitimKurumlariModel>> fetchall_places() async {
+  Future<List<EgitimKurumlariModel>> fetchAllPlaces() async {
     try {
       final response = await http.get(Uri.parse(_baseUrl));
 

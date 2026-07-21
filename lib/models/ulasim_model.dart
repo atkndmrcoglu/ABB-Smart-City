@@ -33,11 +33,10 @@ class Durak {
       id: stopId?.toString() ?? '',
       isim: stopName?.toString() ?? 'Bilinmeyen Durak',
       koordinat: LatLng(lat, lon),
-      hatlar: const [], // Başlangıçta boş, servis katmanında doldurulacak
+      hatlar: const [],
     );
   }
   
-  // Duraktan geçen hatları güncellemek için copyWith metodu
   Durak copyWith({
     String? id,
     String? isim,
@@ -75,7 +74,6 @@ class Hat {
     final shapeId = json['shape_id'];
     final tripId = json['trip_id'];
     
-    // Değerlerin null veya metinsel "null" olma durumlarını temizleyen yardımcı fonksiyon
     String parseString(dynamic value) {
       if (value == null || value.toString().trim().toLowerCase() == 'null') {
         return '';
@@ -107,7 +105,6 @@ class RotaNoktasi {
   });
 
   factory RotaNoktasi.fromJson(Map<String, dynamic> json) {
-    // API'den gelebilecek farklı koordinat parametrelerine karşı esneklik sağlandı
     final lat = json['shape_pt_lat'] ?? json['lat'] ?? json['latitude'];
     final lon = json['shape_pt_lon'] ?? json['lon'] ?? json['longitude'];
     

@@ -14,7 +14,7 @@ class SinemaTiyatro extends StatefulWidget {
 
 class _SinemaTiyatroState extends State<SinemaTiyatro> {
   final MapController _mapController = MapController();
-  final KulturSanatApi _apiService = KulturSanatApi();
+  final SinemaTiyatroApi _apiService = SinemaTiyatroApi();
   final LatLng adanaMerkez = const LatLng(36.9931, 35.3256);
   
   late Future<List<SinemaTiyatroModel>> _futureYerler;
@@ -22,7 +22,7 @@ class _SinemaTiyatroState extends State<SinemaTiyatro> {
   @override
   void initState() {
     super.initState();
-    _futureYerler = _apiService.fetchKulturSanatYerleri();
+    _futureYerler = _apiService.fetchAllPlaces();
   }
 
   void _haritayiOdakla(double lat, double lon) {
@@ -79,7 +79,7 @@ class _SinemaTiyatroState extends State<SinemaTiyatro> {
                   ElevatedButton(
                     onPressed: () {
                       setState(() {
-                        _futureYerler = _apiService.fetchKulturSanatYerleri();
+                        _futureYerler = _apiService.fetchAllPlaces();
                       });
                     },
                     child: const Text('Tekrar Dene'),

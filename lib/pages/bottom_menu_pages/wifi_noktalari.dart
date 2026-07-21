@@ -13,7 +13,7 @@ class WifiNoktalari extends StatefulWidget {
 }
 
 class _WifiNoktalariState extends State<WifiNoktalari> {
-  final WifiNoktasiService _wifiService = WifiNoktasiService();
+  final WifiNoktasiApi _wifiService = WifiNoktasiApi();
   final LatLng _adanaMerkez = const LatLng(36.9931, 35.3256);
   
   List<WifiNoktasi> _wifiListesi = [];
@@ -60,7 +60,7 @@ class _WifiNoktalariState extends State<WifiNoktalari> {
         centerTitle: true,
       ),
       body: _yukleniyor
-          ? const Center(child: CircularProgressIndicator()) // Veri çekilirken dönecek loader
+          ? const Center(child: CircularProgressIndicator()) 
           : FlutterMap(
               options: MapOptions(
                 initialCenter: _adanaMerkez, 

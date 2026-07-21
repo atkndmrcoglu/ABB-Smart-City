@@ -1,4 +1,3 @@
-// ignore_for_file: avoid_print
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -71,7 +70,7 @@ class _RestoranlarVeKonaklamaState extends State<RestoranlarVeKonaklama> with Si
         controller: _tabController,
         children: [
           HaritaSekmesi<RestoranlarModel>(
-            veriGetirmeFonksiyonu: _restoranlarApi.fetchall_places, 
+            veriGetirmeFonksiyonu: _restoranlarApi.fetchAllPlaces, 
             ikonData: Icons.restaurant,
             ikonRengi: Colors.orange.shade700,
             getName: (model) => model.name,
@@ -80,7 +79,7 @@ class _RestoranlarVeKonaklamaState extends State<RestoranlarVeKonaklama> with Si
           ),
           
           HaritaSekmesi<KonaklamaModel>(
-            veriGetirmeFonksiyonu: _konaklamaApi.fetchall_places, 
+            veriGetirmeFonksiyonu: _konaklamaApi.fetchAllPlaces, 
             ikonData: Icons.hotel,
             ikonRengi: Colors.blue.shade700,
             getName: (model) => model.name,
