@@ -11,7 +11,7 @@ class BankalarModel {
 
   factory BankalarModel.fromJson(Map<String, dynamic> json) {
     return BankalarModel(
-      isim: json['ad']?.toString() ?? 'Cami',
+      isim: json['isim'] ?? '',
       lat: _toDouble(json['lat']),
       lon: _toDouble(json['lon']),
     );

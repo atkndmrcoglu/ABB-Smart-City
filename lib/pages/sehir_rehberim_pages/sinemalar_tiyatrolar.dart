@@ -171,7 +171,7 @@ class _SinemaTiyatroState extends State<SinemaTiyatro> {
               CircleAvatar(
                 backgroundColor: Colors.blue.shade50,
                 radius: 18,
-                child: const Icon(Icons.account_balance, color: Colors.blue, size: 20),
+                child: const Icon(Icons.account_balance, color: Colors.black, size: 20),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -197,7 +197,7 @@ class _SinemaTiyatroState extends State<SinemaTiyatro> {
               icon: const Icon(Icons.navigation_outlined, size: 18, color: Colors.white),
               label: const Text("Yol Tarifi Al", style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+                backgroundColor: Colors.black,
                 elevation: 0,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),

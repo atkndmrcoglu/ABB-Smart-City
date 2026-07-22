@@ -231,7 +231,7 @@ class _KulturSanatState extends State<KulturSanat> {
                         ),
                       ),
                       const SizedBox(width: 6),
-                      Icon(detay.anahtarIkon, size: 13, color: Colors.grey),
+                      Icon(detay.anahtarIkon, size: 13, color: Colors.black),
                       const SizedBox(width: 4),
                       Text(detay.anahtarVeri, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
                     ],
@@ -249,7 +249,7 @@ class _KulturSanatState extends State<KulturSanat> {
               icon: const Icon(Icons.navigation_outlined, size: 18, color: Colors.white),
               label: const Text("Yol Tarifi Al", style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+                backgroundColor: Colors.black,
                 elevation: 0,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),

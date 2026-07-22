@@ -114,7 +114,7 @@ class _BankalarState extends State<Bankalar> {
                         _futureYerler = _apiService.getTumBankalar();
                       });
                     },
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
                     child: const Text('Tekrar Dene', style: TextStyle(color: Colors.white)),
                   )
                 ],
@@ -165,7 +165,7 @@ class _BankalarState extends State<Bankalar> {
                             duration: const Duration(milliseconds: 200),
                             child: Icon(
                               Icons.location_on, 
-                              color: isSelected ? Colors.red.shade700 : Colors.teal.shade700, 
+                              color: isSelected ? Colors.red.shade700 : Colors.red, 
                               size: isSelected ? 46 : 38
                             ),
                           ),
@@ -227,9 +227,9 @@ class _BankalarState extends State<Bankalar> {
           Row(
             children: [
               CircleAvatar(
-                backgroundColor: Colors.teal.shade50,
+                backgroundColor: Colors.blue.shade50,
                 radius: 18,
-                child: const Icon(Icons.account_balance_outlined, color: Colors.teal, size: 20),
+                child: const Icon(Icons.account_balance_outlined, color: Colors.black, size: 20),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -260,7 +260,7 @@ class _BankalarState extends State<Bankalar> {
               icon: const Icon(Icons.navigation_outlined, size: 18, color: Colors.white),
               label: const Text("Yol Tarifi Al", style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal.shade800,
+                backgroundColor: Colors.black,
                 elevation: 0,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),

@@ -427,7 +427,7 @@ class _NamazState extends State<Namaz> with SingleTickerProviderStateMixin {
                       duration: const Duration(milliseconds: 200),
                       child: Icon(
                         Icons.location_on,
-                        color: isSelected ? Colors.red.shade700 : Colors.black,
+                        color: isSelected ? Colors.red.shade700 : Colors.red,
                         size: isSelected ? 44 : 36,
                       ),
                     ),

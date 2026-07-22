@@ -3,11 +3,12 @@ import 'package:http/http.dart' as http;
 import 'package:smartcity/models/sehir_rehberim/kultur_sanat_model.dart'; // Model dosyanızın yolu
 
 class KulturSanatApi {
-  final String _baseUrl = "http://172.20.10.10/api/kultur_sanat.php?action=all_places";
+  final String baseUrl = "http://172.20.10.10/api/kultur_sanat.php";
 
   Future<List<KulturSanatModel>> fetchKulturSanatYerleri() async {
+     final String fullUrl = '$baseUrl?action=AllPlaces';
     try {
-      final response = await http.get(Uri.parse(_baseUrl));
+      final response = await http.get(Uri.parse(fullUrl));
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> decodedData = json.decode(response.body);
