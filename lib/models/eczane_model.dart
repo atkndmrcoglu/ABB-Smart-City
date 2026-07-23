@@ -1,31 +1,42 @@
-class Eczane {
-  final String isim;
-  final String telefon;
-  final String adres;
-  final String ilce;
+import 'package:flutter/material.dart';
+
+class KartIcerikDetay {
+  final String rozetMetni;
+  final IconData anahtarIkon;
+  final String anahtarVeri;
+
+  KartIcerikDetay({
+    required this.rozetMetni,
+    required this.anahtarIkon,
+    required this.anahtarVeri,
+  });
+}
+
+class EczanelerModel {
+  final String name;
   final double lat;
   final double lon;
-  final bool nobetcimi;
+  final int is_on_duty;
 
-  Eczane({
-    required this.isim,
-    required this.telefon,
-    required this.adres,
-    required this.ilce,
+  EczanelerModel({
+    required this.name,
     required this.lat,
     required this.lon,
-    this.nobetcimi = true,
+    required this.is_on_duty,
   });
 
-  factory Eczane.fromJson(Map<String, dynamic> json) {
-    return Eczane(
-      isim: json['name'] ?? json['eczane_adi'] ?? '',
-      telefon: json['phone'] ?? json['telefon'] ?? '',
-      adres: json['address'] ?? json['adres'] ?? '',
-      ilce: json['dist'] ?? json['ilce'] ?? '',
-      // Gelen string veya int değerleri güvenli bir şekilde double'a çeviriyoruz
-      lat: double.tryParse(json['loc']?.split(',')[0] ?? json['lat']?.toString() ?? '36.9931') ?? 36.9931,
-      lon: double.tryParse(json['loc']?.split(',')[1] ?? json['lon']?.toString() ?? '35.3256') ?? 35.3256,
+  factory EczanelerModel.fromJson(Map<String, dynamic> json) {
+    return EczanelerModel(
+      name: json['name']?.toString() ?? '',
+      
+      // double.tryParse kullanarak dönüşüm hatalarının önüne geçildi
+      lat: double.tryParse(json['lat']?.toString() ?? '') ?? 0.0,
+      
+      // Hem 'lon' hem de 'long' gelme ihtimaline karşı ikisi de kontrol ediliyor
+      lon: double.tryParse((json['lon'] ?? json['long'])?.toString() ?? '') ?? 0.0,
+      
+      // int.tryParse ile güvenli sayı dönüşümü
+      is_on_duty: int.tryParse(json['is_on_duty']?.toString() ?? '') ?? 0,
     );
   }
 }

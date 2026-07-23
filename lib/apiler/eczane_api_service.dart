@@ -1,37 +1,36 @@
-// ignore_for_file: avoid_print
 import 'dart:convert';
-import 'package:flutter/services.dart'; // rootBundle için gerekli
-import '../models/eczane_model.dart';
+import 'package:http/http.dart' as http;
+import 'package:smartcity/models/eczane_model.dart';
 
-class EczaneApiService {
+class EczanelerApi {
+  final String baseUrl = "http://172.20.10.10/api/eczaneler.php";
 
-  Future<List<Eczane>> nobetciEczaneleriGetir(String ilce) async {
+  Future<List<EczanelerModel>> fetchAllPlaces() async {
+    final String fullUrl = '$baseUrl?action=AllPlaces';
+    
     try {
-      // 1. Gerçek API gecikmesini simüle etmek için 1 saniye bekletiyoruz
-      await Future.delayed(const Duration(seconds: 1));
-
-      // 2. Yerel JSON dosyamızı okuyoruz
-      final String response = await rootBundle.loadString('assets/json_files/eczaneler.json');
-      final Map<String, dynamic> responseData = json.decode(response);
-
-      if (responseData['status'] == 'success' && responseData['data'] != null) {
-        final List<dynamic> tumEczaneler = responseData['data'];
-        
-        // 3. Kullanıcın seçtiği ilçeye göre yerel filtreleme yapıyoruz
-        final arananIlce = ilce.trim().toLowerCase();
-        
-        final filtrelenmisEczaneler = tumEczaneler.where((item) {
-          // JSON içindeki 'Ilce' değerini kontrol ediyoruz
-          return item['Ilce'] == arananIlce;
-        }).toList();
-
-        return filtrelenmisEczaneler.map((json) => Eczane.fromJson(json)).toList();
-      }
+      final response = await http.get(Uri.parse(fullUrl));
       
-      return [];
-    } catch (e) {
-      print("Yerel veri okuma hatası: $e");
-      return [];
-    }
+      if (response.statusCode == 200) {
+        final dynamic jsonData = json.decode(response.body);
+
+        if (jsonData is Map<String, dynamic>) {
+          if (jsonData.containsKey('error')) {
+            return [];
+          }
+          if (jsonData.containsKey('data')) {
+            final List<dynamic> data = jsonData['data'];
+            return data.map((json) => EczanelerModel.fromJson(json)).toList();
+          }
+          return [];
+        }
+        
+        if (jsonData is List) {
+          return jsonData.map((json) => EczanelerModel.fromJson(json)).toList();
+        }
+      }
+    } finally{}
+    
+    return [];
   }
 }
